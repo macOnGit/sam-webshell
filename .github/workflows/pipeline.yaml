@@ -47,7 +47,7 @@ jobs:
           python-version: '3.11'
           cache: 'pip'
       - run: pip install -r requirements.txt
-      - run: pytest -k test_handler
+      - run: pytest tests/unit
 
   delete-feature:
     if: startsWith(github.event.ref, 'feature') && github.event_name == 'delete'
@@ -213,8 +213,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v3
-      - run: |
-          # trigger the integration tests here
+      - run: pytest tests/integration
 
   deploy-prod:
     if: github.ref == 'refs/heads/master'
