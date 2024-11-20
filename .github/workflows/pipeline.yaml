@@ -44,7 +44,7 @@ jobs:
           python-version: '3.11'
           cache: 'pip'
       - run: pip install -r requirements.txt
-      - run: pytest tests/unit
+      - run: pytest tests/unit -v
 
   delete-feature:
     if: startsWith(github.event.ref, 'feature') && github.event_name == 'delete'
@@ -215,9 +215,7 @@ jobs:
           python-version: '3.11'
           cache: 'pip'
       - run: pip install -r requirements.txt
-      - run: pytest tests/integration
-    env:
-      AWS_SAM_STACK_NAME: ${{ env.TESTING_STACK_NAME }}
+      - run: AWS_SAM_STACK_NAME=${TESTING_STACK_NAME} pytest tests/integration -v
 
   deploy-prod:
     if: github.ref == 'refs/heads/master'
