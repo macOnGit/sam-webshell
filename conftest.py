@@ -3,6 +3,11 @@ import boto3
 import os
 
 
+@pytest.fixture
+def s3_client():
+    return boto3.client("s3")
+
+
 @pytest.fixture()
 def api_gateway_url():
     """Get the API Gateway URL from Cloudformation Stack outputs"""
@@ -35,6 +40,7 @@ def api_gateway_url():
     return api_outputs[0]["OutputValue"]  # Extract url from stack outputs
 
 
+# TODO: this should be in events
 @pytest.fixture()
 def apigw_event():
     """Generates API GW Event"""

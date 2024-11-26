@@ -1,8 +1,10 @@
 AWSTemplateFormatVersion: '2010-09-09'
 Transform: AWS::Serverless-2016-10-31
-Description: |
-  sam-webshell
-  Sample SAM Template for sam-webshell
+Description: SAM Template for sam-webshell
+
+Parameters:
+ TemplatesBucketName:
+  Type: String
 
 Globals:
   Function:
@@ -12,24 +14,33 @@ Globals:
     Runtime: python3.11
 
 Resources:
-  HelloWorldFunction:
+  DocumentsFunction:
     Type: AWS::Serverless::Function
     Properties:
-      CodeUri: hello_world/
+      CodeUri: documents/
       Events:
-        HelloWorld:
+        GetDocuments:
           Type: Api
           Properties:
-            Path: /hello
+            Path: /documents
             Method: get
+
+  TemplatesBucket:
+    Type: AWS::S3::Bucket
+    Properties:
+      BucketName: !Ref TemplatesBucketName
+
 
 Outputs:
   RestApi:
     Description: API Gateway endpoint URL for Prod stage (implicit)
     Value: !Sub https://${ServerlessRestApi}.execute-api.${AWS::Region}.amazonaws.com/Prod/
-  HelloWorldFunction:
-    Description: Hello World Lambda Function ARN
-    Value: !GetAtt HelloWorldFunction.Arn
-  HelloWorldFunctionIamRole:
-    Description: Implicit IAM Role created for Hello World function
-    Value: !GetAtt HelloWorldFunctionRole.Arn
+  DocumentsFunction:
+    Description: Documents Function ARN
+    Value: !GetAtt DocumentsFunction.Arn
+  DocumentsFunctionIamRole:
+    Description: Implict role for Documents Function
+    Value: !GetAtt DocumentsFunctionRole.Arn
+  TemplatesBucketName:
+    Description: Bucket for template documents and emails
+    Value: !GetAtt  TemplatesBucket.Arn
