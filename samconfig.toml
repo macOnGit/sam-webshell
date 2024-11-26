@@ -19,6 +19,7 @@ s3_prefix = "sam-webshell"
 region = "us-east-1"
 image_repositories = []
 # resolve_s3 = true
+parameter_overrides = "TemplatesBucketName=\"sam-webshell-templates\"
 
 [default.package.parameters]
 # resolve_s3 = true
