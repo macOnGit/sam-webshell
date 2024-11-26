@@ -18,6 +18,10 @@ Resources:
     Type: AWS::Serverless::Function
     Properties:
       CodeUri: documents/
+      Policies:
+        # TODO: narrower policies
+        - AWSLambdaBasicExecutionRole
+        - AmazonS3FullAccess
       Events:
         GetDocuments:
           Type: Api
