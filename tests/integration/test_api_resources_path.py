@@ -9,7 +9,7 @@ class TestDocumentsDir:
         response = requests.get(f"{api_gateway_url}/documents")
 
         assert response.status_code == 200
-        assert len(response["content"]) == 2
+        assert len(response.json()) == 2, "Did not find two documents in bucket"
 
 
 class TestEmailsDir:
