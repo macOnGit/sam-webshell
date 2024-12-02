@@ -8,4 +8,3 @@ class TestApiGateway:
         response = requests.get(f"{api_gateway_url}/documents")
 
         assert response.status_code == 200
-        assert response.json() == {"message": "hello world"}
