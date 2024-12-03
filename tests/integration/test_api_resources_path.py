@@ -1,8 +1,10 @@
 import requests
+import pytest
 
 
 class TestDocumentsDir:
 
+    @pytest.mark.usefixtures("template_bucket_with_templates")
     def test_get_list_of_available_documents(self, api_gateway_url):
         # 1. Available documents if there's no query string (under prefix and tagged in s3 as available)
         # call api /documents which makes call to s3

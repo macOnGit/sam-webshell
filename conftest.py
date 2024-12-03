@@ -1,11 +1,48 @@
+from pathlib import Path
 import pytest
 import boto3
 import os
+
+base_path = Path(__file__).parent
 
 
 @pytest.fixture
 def s3_client():
     return boto3.client("s3")
+
+
+@pytest.fixture(scope="session")
+def template_bucket():
+    s3 = boto3.resource("s3")
+    bucket = s3.Bucket(name="sam-webshell-templates")
+    yield bucket
+    for key in bucket.objects.all():
+        key.delete()
+
+
+@pytest.fixture(scope="session")
+def blank_template_doc():
+    return base_path / "fixtures" / "blank_template_doc.docx"
+
+
+@pytest.fixture(scope="session")
+def general_amdt_doc():
+    return base_path / "fixtures" / "general_amdt_doc.docx"
+
+
+@pytest.fixture(scope="session")
+def template_bucket_with_templates(
+    template_bucket, blank_template_doc, general_amdt_doc
+):
+    try:
+        template_bucket.upload_file(blank_template_doc, "blank_template_doc.docx")
+    except Exception as err:
+        print(str(err))
+
+    try:
+        template_bucket.upload_file(general_amdt_doc, "general_amdt_doc.docx")
+    except Exception as err:
+        print(str(err))
 
 
 @pytest.fixture()

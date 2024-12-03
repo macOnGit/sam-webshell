@@ -33,9 +33,9 @@ def lambda_handler(event: APIGatewayProxyEvent, context: LambdaContext):
 
     s3_resource_class = LambdaS3Class(_LAMBDA_S3_RESOURCE)
 
-    objects = s3_resource_class.bucket.objects.all()
+    keys = [obj.key for obj in s3_resource_class.bucket.objects.all()]
 
     return {
         "statusCode": 200,
-        "body": json.dumps(list(objects)),
+        "body": json.dumps(keys),
     }
