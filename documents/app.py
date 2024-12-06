@@ -7,9 +7,7 @@ from aws_lambda_powertools.utilities.typing import LambdaContext
 
 _LAMBDA_S3_RESOURCE = {
     "resource": resource("s3"),
-    # TODO: don't hardcode bucket name
-    # "bucket_name": environ.get("TEMPLATE_BUCKET_NAME", "NONE"),
-    "bucket_name": "sam-webshell-templates",
+    "bucket_name": environ.get("TEMPLATE_BUCKET_NAME", "NONE"),
 }
 
 

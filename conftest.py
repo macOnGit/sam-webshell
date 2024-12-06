@@ -14,7 +14,7 @@ def s3_client():
 @pytest.fixture(scope="session")
 def template_bucket():
     s3 = boto3.resource("s3")
-    bucket = s3.Bucket(name="sam-webshell-templates")
+    bucket = s3.Bucket(name="webshell-dev-templates")
     yield bucket
     for key in bucket.objects.all():
         key.delete()
