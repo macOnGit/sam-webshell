@@ -31,9 +31,20 @@ def lambda_handler(event: APIGatewayProxyEvent, context: LambdaContext):
 
     s3_resource_class = LambdaS3Class(_LAMBDA_S3_RESOURCE)
 
+    if event["httpMethod"] == "POST":
+        # TODO: actually create document
+        return {
+            "statusCode": 201,
+            "headers": {
+                "Content-Type": "application/json",
+                "Location": "http://example.com/placeholder_for_s3",
+            },
+        }
+
     keys = [obj.key for obj in s3_resource_class.bucket.objects.all()]
 
     return {
         "statusCode": 200,
+        "headers": {"Content-Type": "application/json"},
         "body": json.dumps(keys),
     }

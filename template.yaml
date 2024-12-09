@@ -27,6 +27,12 @@ Resources:
           Properties:
             Path: /documents
             Method: get
+        CreateDocument:
+          Type: Api
+          Properties:
+            Path: /documents
+            Method: post
+
 
   TemplatesBucket:
     Type: AWS::S3::Bucket
