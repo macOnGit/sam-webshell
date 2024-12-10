@@ -4,7 +4,7 @@ import pytest
 
 class TestDocumentsDir:
 
-    # TODO: documents should be under /documents key
+    # TODO: template documents should be under /documents key
 
     @pytest.mark.usefixtures("template_bucket_with_templates")
     def test_get_list_of_available_documents(self, api_gateway_url):
@@ -20,7 +20,10 @@ class TestDocumentsDir:
         )
         assert response.status_code == 201
         # Let s3 take care of download
-        assert response.headers["Location"] == "s3_location_for_created_doc"
+        assert (
+            response.headers["Location"]
+            == f"https://webshell-dev-generated-documents.s3.amazonaws.com/test.docx"
+        )
 
     # def test_creates_new_doc_using_template(self):
     #     pass
