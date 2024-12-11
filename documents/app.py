@@ -35,7 +35,7 @@ class S3Resource:
 
 def download_template(templates_resource, key, download_path):
     try:
-        templates_resource.download_file(key, download_path)
+        templates_resource.bucket.download_file(key, download_path)
         logger.info(f"template: {key} downloaded")
     except ClientError as e:
         logger.error(e)
@@ -45,7 +45,7 @@ def download_template(templates_resource, key, download_path):
 
 def upload_generated_document(templates_resource, upload_path, key):
     try:
-        templates_resource.upload_file(upload_path, key)
+        templates_resource.bucket.upload_file(upload_path, key)
         logger.info(f"{key} created in {templates_resource.bucket_name} bucket")
     except ClientError as e:
         logger.error(e)
