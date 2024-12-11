@@ -20,9 +20,10 @@ class TestDocumentsDir:
         )
         assert response.status_code == 201
         # Let s3 take care of download
+        # TODO: don't hardcode bucket, region, or key
         assert (
             response.headers["Location"]
-            == f"https://webshell-dev-generated-documents.s3.amazonaws.com/test.docx"
+            == "https://webshell-dev-generated-documents.s3.us-east-1.amazonaws.com/test.docx"
         )
 
     # def test_creates_new_doc_using_template(self):

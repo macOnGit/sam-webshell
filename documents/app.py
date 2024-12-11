@@ -18,6 +18,7 @@ _S3_RESOURCE_GENERATED_DOCUMENTS = {
     "bucket_name": environ.get("GENERATED_DOCUMENTS_BUCKET_NAME", "NONE"),
 }
 
+region = environ["AWS_REGION"]
 
 logger = logging.getLogger()
 logger.setLevel("INFO")
@@ -38,9 +39,7 @@ def download_template(s3resource: S3Resource, *, key: str, filename: str) -> boo
     # filename - path downloaded file
     try:
         s3resource.bucket.download_file(key, filename)
-        logger.info(
-            f"template: {key} downloaded from {s3resource.bucket_name} as {filename}"
-        )
+        logger.info(f"template: {key} downloaded from {s3resource.bucket_name}")
     except ClientError as e:
         logger.error(e)
         return False
@@ -54,7 +53,7 @@ def upload_generated_document(
     # filename - path of file to upload
     try:
         s3resource.bucket.upload_file(filename, key)
-        logger.info(f"{key} created in {s3resource.bucket_name} bucket as {filename}")
+        logger.info(f"{key} created in {s3resource.bucket_name} bucket as {key}")
     except ClientError as e:
         logger.error(e)
         return False
@@ -70,7 +69,7 @@ def lambda_handler(event: APIGatewayProxyEvent, context: LambdaContext):
 
         print("###EVENT RECIEVED", event)
 
-        generated_document_url = "https://{bucket}.s3.amazonaws.com/{key}"
+        generated_document_url = "https://{bucket}.s3.{region}.amazonaws.com/{key}"
         download_path = f"/tmp/template-{uuid.uuid4()}.docx"
         template = json.loads(event["body"])["template"]
 
@@ -105,6 +104,7 @@ def lambda_handler(event: APIGatewayProxyEvent, context: LambdaContext):
                 "Content-Type": "application/json",
                 "Location": generated_document_url.format(
                     bucket=s3resource_generated_documents.bucket_name,
+                    region=region,
                     key=generated_document_key,
                 ),
             },
