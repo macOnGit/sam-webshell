@@ -63,9 +63,10 @@ def lambda_handler(event: APIGatewayProxyEvent, context: LambdaContext):
         print("###EVENT RECIEVED", event)
 
         download_path = f"/tmp/template-{uuid.uuid4()}.docx"
+        template = json.loads(event["body"])["template"]
 
         template_downloaded = download_template(
-            s3resource_templates, event["template"], download_path
+            s3resource_templates, template, download_path
         )
         if not template_downloaded:
             raise Exception("Failed to get template")
