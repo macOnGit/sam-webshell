@@ -104,7 +104,8 @@ def lambda_handler(event: APIGatewayProxyEvent, context: LambdaContext):
             "headers": {
                 "Content-Type": "application/json",
                 "Location": generated_document_url.format(
-                    bucket=s3resource_generated_documents, key=generated_document_key
+                    bucket=s3resource_generated_documents.bucket_name,
+                    key=generated_document_key,
                 ),
             },
         }
