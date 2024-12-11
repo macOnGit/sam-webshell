@@ -16,7 +16,7 @@ class TestDocumentsDir:
     @pytest.mark.usefixtures("template_bucket_with_templates")
     def test_post_returns_201_and_location_header(self, api_gateway_url):
         response = requests.post(
-            f"{api_gateway_url}/documents", data={"template": "blank_template_doc.docx"}
+            f"{api_gateway_url}/documents", json={"template": "blank_template_doc.docx"}
         )
         assert response.status_code == 201
         # Let s3 take care of download
