@@ -60,6 +60,8 @@ def lambda_handler(event: APIGatewayProxyEvent, context: LambdaContext):
 
     if event["httpMethod"] == "POST":
 
+        print("###EVENT RECIEVED", json.dumps(event, indent=4))
+
         download_path = f"/tmp/template-{uuid.uuid4()}.docx"
 
         template_downloaded = download_template(
