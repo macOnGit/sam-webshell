@@ -54,7 +54,7 @@ Outputs:
   DocumentsFunctionIamRole:
     Description: Implict role for Documents Function
     Value: !GetAtt DocumentsFunctionRole.Arn
-  TemplatesBucketName:
+  TemplatesBucket:
     Description: Bucket for template documents and emails
     Value: !GetAtt  TemplatesBucket.Arn
   GeneratedDocumentsBucket:
