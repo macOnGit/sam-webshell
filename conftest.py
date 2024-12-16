@@ -52,13 +52,16 @@ def general_amdt_doc():
 def template_bucket_with_templates(
     template_bucket, blank_template_doc, general_amdt_doc
 ):
+    prefix = "documents"
     try:
-        template_bucket.upload_file(blank_template_doc, "blank_template_doc.docx")
+        template_bucket.upload_file(
+            blank_template_doc, f"{prefix}/blank_template_doc.docx"
+        )
     except Exception as err:
         print(str(err))
 
     try:
-        template_bucket.upload_file(general_amdt_doc, "general_amdt_doc.docx")
+        template_bucket.upload_file(general_amdt_doc, f"{prefix}/general_amdt_doc.docx")
     except Exception as err:
         print(str(err))
 
