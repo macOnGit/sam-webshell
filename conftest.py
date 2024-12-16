@@ -13,18 +13,26 @@ def s3_client():
 
 
 @pytest.fixture(scope="session")
-def template_bucket():
-    s3 = boto3.resource("s3")
-    bucket = s3.Bucket(name="webshell-dev-templates")
+def s3_resource():
+    return boto3.resource("s3")
+
+
+@pytest.fixture
+def cloudformation_client():
+    return boto3.client("cloudformation")
+
+
+@pytest.fixture(scope="session")
+def template_bucket(stack_name, s3_resource):
+    bucket = s3_resource.Bucket(name=f"{stack_name}-templates")
     yield bucket
     for key in bucket.objects.all():
         key.delete()
 
 
 @pytest.fixture(scope="session")
-def generated_documents_bucket():
-    s3 = boto3.resource("s3")
-    bucket = s3.Bucket(name="webshell-dev-generated-documents")
+def generated_documents_bucket(stack_name, s3_resource):
+    bucket = s3_resource.Bucket(name=f"{stack_name}-generated-documents")
     yield bucket
     for key in bucket.objects.all():
         key.delete()
@@ -55,18 +63,20 @@ def template_bucket_with_templates(
         print(str(err))
 
 
-@pytest.fixture()
-def stack_outputs():
-    stack_name = os.environ.get("AWS_SAM_STACK_NAME")
-    if stack_name is None:
+@pytest.fixture(scope="session")
+def stack_name():
+    _stack_name = os.environ.get("AWS_SAM_STACK_NAME")
+    if _stack_name is None:
         raise ValueError(
             "Please set the AWS_SAM_STACK_NAME environment variable to the name of your stack"
         )
+    return _stack_name
 
-    client = boto3.client("cloudformation")
 
+@pytest.fixture()
+def stack_outputs(stack_name, cloudformation_client):
     try:
-        response = client.describe_stacks(StackName=stack_name)
+        response = cloudformation_client.describe_stacks(StackName=stack_name)
     except Exception as e:
         raise Exception(
             f"Cannot find stack {stack_name} \n"
