@@ -22,6 +22,15 @@ def template_bucket():
 
 
 @pytest.fixture(scope="session")
+def generated_documents_bucket():
+    s3 = boto3.resource("s3")
+    bucket = s3.Bucket(name="webshell-dev-generated-documents")
+    yield bucket
+    for key in bucket.objects.all():
+        key.delete()
+
+
+@pytest.fixture(scope="session")
 def blank_template_doc():
     return base_path / "fixtures" / "blank_template_doc.docx"
 
@@ -47,10 +56,8 @@ def template_bucket_with_templates(
 
 
 @pytest.fixture()
-def api_gateway_url():
-    """Get the API Gateway URL from Cloudformation Stack outputs"""
+def stack_outputs():
     stack_name = os.environ.get("AWS_SAM_STACK_NAME")
-
     if stack_name is None:
         raise ValueError(
             "Please set the AWS_SAM_STACK_NAME environment variable to the name of your stack"
@@ -67,13 +74,18 @@ def api_gateway_url():
         ) from e
 
     stacks = response["Stacks"]
-    stack_outputs = stacks[0]["Outputs"]
+    return stacks[0]["Outputs"]
+
+
+@pytest.fixture()
+def api_gateway_url(stack_outputs):
+    """Get the API Gateway URL from Cloudformation Stack outputs"""
     api_outputs = [
         output for output in stack_outputs if output["OutputKey"] == "RestApi"
     ]
 
     if not api_outputs:
-        raise KeyError(f"RestAPI not found in stack {stack_name}")
+        raise KeyError(f"RestAPI not found in stack")
 
     return api_outputs[0]["OutputValue"]  # Extract url from stack outputs
 

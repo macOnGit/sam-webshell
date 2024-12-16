@@ -3,7 +3,7 @@
 version = 0.1
 
 [default.global.parameters]
-stack_name = "sam-webshell"
+stack_name = "webshell-staging"
 region = "us-east-1"
 
 [default.build.parameters]
@@ -16,7 +16,7 @@ lint = true
 [default.deploy.parameters]
 capabilities = "CAPABILITY_IAM"
 confirm_changeset = false
-s3_prefix = "sam-webshell"
+s3_prefix = "webshell-staging"
 image_repositories = []
 # resolve_s3 = true
 
