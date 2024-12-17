@@ -25,7 +25,7 @@ class TestDocumentsDir:
         # TODO: don't hardcode bucket, region, or key
         assert (
             response.headers["Location"]
-            == "https://webshell-dev-generated-documents.s3.us-east-1.amazonaws.com/test.docx"
+            == "https://webshell-dev-generated-documents.s3.us-east-1.amazonaws.com/documents/test.docx"
         )
 
     # def test_creates_new_doc_using_template(self):
