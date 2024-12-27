@@ -83,7 +83,6 @@ def lambda_handler(event: APIGatewayProxyEvent, context: LambdaContext):
         upload_path = download_path
 
         # TODO: get generated document template name from dynamodb
-        # TODO: generated documents shold be under /documents key
         generated_document_key = "documents/test.docx"
 
         global _S3_RESOURCE_GENERATED_DOCUMENTS

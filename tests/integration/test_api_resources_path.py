@@ -4,8 +4,6 @@ import pytest
 
 class TestDocumentsDir:
 
-    # TODO: template documents should be under /documents key
-
     @pytest.mark.usefixtures("template_bucket_with_templates")
     def test_get_list_of_available_documents(self, api_gateway_url):
         response = requests.get(f"{api_gateway_url}/documents")
