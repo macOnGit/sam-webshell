@@ -4,6 +4,12 @@ import pytest
 import boto3
 import os
 
+# TODO: create/validate schemes
+# from aws_lambda_powertools.utilities.validation import validate
+# from src.sample_lambda.schemas import (
+#     INPUT_SCHEMA,
+# )  # pylint: disable=wrong-import-position
+
 base_path = Path(__file__).parent
 
 
@@ -103,6 +109,7 @@ def api_gateway_url(stack_outputs):
     return api_outputs[0]["OutputValue"]  # Extract url from stack outputs
 
 
+# usage: @pytest.mark.parametrize("event", ["apigw_event"], indirect=True)
 @pytest.fixture
 def event(request):
     filename = request.param

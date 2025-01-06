@@ -20,6 +20,9 @@ Resources:
           GENERATED_DOCUMENTS_BUCKET_NAME: !Sub "${AWS::StackName}-generated-documents"
       Policies:
         # TODO: narrower policies
+        # https://docs.aws.amazon.com/serverless-application-model/latest/developerguide/serverless-policy-template-list.html
+        # - AmazonS3FullAccess:
+        #     BucketName: !Ref GeneratedDocumentsBucket
         - AWSLambdaBasicExecutionRole
         - AmazonS3FullAccess
       Events:
