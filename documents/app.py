@@ -22,33 +22,16 @@ _S3_RESOURCE_GENERATED_DOCUMENTS = {
     "bucket_name": environ.get("GENERATED_DOCUMENTS_BUCKET_NAME"),
 }
 
-
-# _DYNAMODB_RESOURCE_TEMPLATE_DATA = {
-#     "resource": resource("dynamodb"),
-#     "table_name": environ.get("TEMPLATE_DATA_TABLE_NAME"),
-# }
-
-# TODO: seperate table for saving document data
-
 REGION = environ.get("AWS_REGION")
 
 logger = logging.getLogger()
 logger.setLevel("INFO")
 
 
-# class DynamoDBResource:
-#     """AWS DynamoDB Resource"""
-
-#     def __init__(self, lambda_dynamodb_resource):
-#         self.resource = lambda_dynamodb_resource["resource"]
-#         self.table_name = lambda_dynamodb_resource["table_name"]
-#         self.table = self.resource.Table(self.table_name)
-
-
 class S3Resource:
     """AWS S3 Resource"""
 
-    def __init__(self, lambda_s3_resource):
+    def __init__(self, lambda_s3_resource: dict):
         self.resource = lambda_s3_resource["resource"]
         self.bucket_name = lambda_s3_resource["bucket_name"]
         self.bucket = self.resource.Bucket(self.bucket_name)
@@ -100,6 +83,11 @@ def generate_document(documentpath: Path, templatepath: Path, *args, **kwargs):
     copy(templatepath, documentpath)
 
 
+def get_generated_document_key() -> str:
+    # TODO: get generated document key name from parameter store
+    return "documents/test.docx"
+
+
 def lambda_handler(event: APIGatewayProxyEvent, context: LambdaContext):
 
     # TODO: seperate funcs for POST and GET
@@ -121,7 +109,6 @@ def lambda_handler(event: APIGatewayProxyEvent, context: LambdaContext):
             raise Exception("env GENERATED_DOCUMENTS_BUCKET_NAME unset")
 
         generated_document_url = "https://{bucket}.s3.{region}.amazonaws.com/{key}"
-        # TODO: use tempfiles for download and upload
         download_path = Path(f"/tmp/template-{uuid.uuid4()}.docx")
         # TODO: template as queryStringParameter
         template = json.loads(event["body"])["template"]
@@ -129,24 +116,25 @@ def lambda_handler(event: APIGatewayProxyEvent, context: LambdaContext):
         template_downloaded = download_template(
             s3resource_templates, key=template, filename=download_path
         )
+        # TODO: move into download_template
         if not template_downloaded:
             raise Exception("Failed to get template")
 
         upload_path = Path(f"/tmp/generated-{uuid.uuid4()}.docx")
         generate_document(documentpath=upload_path, templatepath=download_path)
-
-        # TODO: get generated document key name from dynamodb
-        generated_document_key = "documents/test.docx"
+        generated_document_key = get_generated_document_key()
 
         uploaded_generated_document = upload_generated_document(
             s3resource_generated_documents,
             key=generated_document_key,
             filename=upload_path,
         )
+        # TODO: move into upload_generated_document
         if not uploaded_generated_document:
             raise Exception("Failed to upload generated document")
 
-        # TODO: write content to a dynamodb table
+        # TODO: write recreatable content to a dynamodb table
+        # TODO: sns for prior art download
 
         return {
             "statusCode": 201,

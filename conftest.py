@@ -1,8 +1,14 @@
+# TODO: split into multiple conftest files
+# https://stackoverflow.com/a/27068195
+
 import json
 from pathlib import Path
+from dataclasses import dataclass
 import pytest
 import boto3
 import os
+from moto import mock_aws
+from documents.app import S3ResourceTemplates, S3ResoureGeneratedDocuments
 
 # TODO: create/validate schemes
 # from aws_lambda_powertools.utilities.validation import validate
@@ -11,6 +17,82 @@ import os
 # )  # pylint: disable=wrong-import-position
 
 base_path = Path(__file__).parent
+
+
+@dataclass
+class Filenames:
+    template_bucket_name: str
+    generated_documents_bucket_name: str
+
+
+@pytest.fixture
+def filenames():
+    return Filenames(
+        template_bucket_name="test_s3_template_bucket",
+        generated_documents_bucket_name="test_s3_generated_document_bucket",
+    )
+
+
+@pytest.fixture(scope="function")
+def aws_credentials():
+    """Mocked AWS Credentials for moto."""
+    # NOTE: fixtures cannot use usefixture
+    os.environ["AWS_ACCESS_KEY_ID"] = "testing"
+    os.environ["AWS_SECRET_ACCESS_KEY"] = "testing"
+    os.environ["AWS_SECURITY_TOKEN"] = "testing"
+    os.environ["AWS_SESSION_TOKEN"] = "testing"
+    os.environ["AWS_DEFAULT_REGION"] = "us-east-1"
+
+
+@pytest.fixture
+def mock_s3_client(aws_credentials):
+    """Return a mocked S3 client"""
+    with mock_aws():
+        yield boto3.client("s3", region_name="us-east-1")
+
+
+@pytest.fixture
+def mock_s3_resource(aws_credentials):
+    """Return a mocked S3 resource"""
+    with mock_aws():
+        yield boto3.resource("s3")
+
+
+@pytest.fixture
+def mock_templates_bucket(filenames, mock_s3_client):
+    mock_s3_client.create_bucket(Bucket=filenames.template_bucket_name)
+    return filenames.template_bucket_name
+
+
+@pytest.fixture
+def mock_generated_documents_bucket(filenames, mock_s3_client):
+    mock_s3_client.create_bucket(Bucket=filenames.generated_documents_bucket_name)
+    return filenames.generated_documents_bucket_name
+
+
+@pytest.fixture
+def mock_s3_templates(mock_templates_bucket, mock_s3_resource):
+    return S3ResourceTemplates(
+        {"resource": mock_s3_resource, "bucket_name": mock_templates_bucket}
+    )
+
+
+@pytest.fixture
+def mock_s3_generated_documents(mock_generated_documents_bucket, mock_s3_resource):
+    return S3ResoureGeneratedDocuments(
+        {
+            "resource": mock_s3_resource,
+            "bucket_name": mock_generated_documents_bucket,
+        }
+    )
+
+
+@pytest.fixture
+def mock_s3_templates_with_template(request, mock_s3_templates):
+    template = request.param
+    docx_file = base_path / "fixtures" / f"{template}.docx"
+    mock_s3_templates.bucket.upload_file(docx_file, f"documents/{template}.docx")
+    return mock_s3_templates
 
 
 @pytest.fixture
