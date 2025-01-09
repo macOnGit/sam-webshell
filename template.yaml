@@ -13,7 +13,7 @@ Resources:
   DocumentsFunction:
     Type: AWS::Serverless::Function
     Properties:
-      CodeUri: documents/
+      CodeUri: functions/documents/
       Environment:
         Variables:
           TEMPLATE_BUCKET_NAME: !Sub "${AWS::StackName}-templates"

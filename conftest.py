@@ -8,7 +8,7 @@ import pytest
 import boto3
 import os
 from moto import mock_aws
-from documents.app import S3ResourceTemplates, S3ResoureGeneratedDocuments
+from functions.documents.app import S3ResourceTemplates, S3ResoureGeneratedDocuments
 
 # TODO: create/validate schemes
 # from aws_lambda_powertools.utilities.validation import validate

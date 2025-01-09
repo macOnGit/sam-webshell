@@ -1,5 +1,5 @@
 import pytest
-from documents.app import lambda_handler
+from functions.documents.app import lambda_handler
 
 location_url = "https://{bucket}.s3.{region}.amazonaws.com/{key}"
 
@@ -16,13 +16,14 @@ def test_lambda_handler_valid_event_returns_200(
     event,
 ):
     monkeypatch.setattr(
-        "documents.app.S3ResoureGeneratedDocuments",
+        "functions.documents.app.S3ResoureGeneratedDocuments",
         lambda _: mock_s3_generated_documents,
     )
     monkeypatch.setattr(
-        "documents.app.S3ResourceTemplates", lambda _: mock_s3_templates_with_template
+        "functions.documents.app.S3ResourceTemplates",
+        lambda _: mock_s3_templates_with_template,
     )
-    monkeypatch.setattr("documents.app.REGION", "us-east-1")
+    monkeypatch.setattr("functions.documents.app.REGION", "us-east-1")
 
     response = lambda_handler(event=event, context=None)
     assert response["statusCode"] == 201
