@@ -7,6 +7,8 @@ from os import environ
 from pathlib import Path
 
 # TODO: stub implementation, use DocxTemplate for real
+# TODO: use scheme validator
+# from aws_lambda_powertools.utilities.validation import validator
 from shutil import copy
 
 from aws_lambda_powertools.utilities.data_classes import APIGatewayProxyEvent
@@ -47,7 +49,19 @@ class S3ResourceTemplates(S3Resource):
     pass
 
 
-def download_template(s3resource: S3Resource, *, key: str, filename: str) -> bool:
+class TemplateNotFoundError(Exception):
+    pass
+
+
+class EnvUnsetError(Exception):
+    pass
+
+
+class UploadFailError(Exception):
+    pass
+
+
+def download_template(s3resource: S3Resource, *, key: str, filename: str):
     # key - name of key in source bucket
     # filename - path downloaded file
     try:
@@ -55,8 +69,7 @@ def download_template(s3resource: S3Resource, *, key: str, filename: str) -> boo
         logger.info(f"template: {key} downloaded from {s3resource.bucket_name}")
     except ClientError as e:
         logger.error(e)
-        return False
-    return True
+        raise TemplateNotFoundError(f"Failed to get template: {key}")
 
 
 def upload_generated_document(
@@ -69,8 +82,7 @@ def upload_generated_document(
         logger.info(f"{key} created in {s3resource.bucket_name} bucket as {key}")
     except ClientError as e:
         logger.error(e)
-        return False
-    return True
+        raise UploadFailError(f"Failed to upload generated document: {key}")
 
 
 # TODO: pass jinja_env for including custom filters
@@ -94,64 +106,74 @@ def lambda_handler(event: APIGatewayProxyEvent, context: LambdaContext):
 
     logger.info("###EVENT RECIEVED", event)
 
-    global _S3_RESOURCE_TEMPLATES
-    s3resource_templates = S3ResourceTemplates(_S3_RESOURCE_TEMPLATES)
-    if not s3resource_templates.bucket_name:
-        raise Exception("env TEMPLATE_BUCKET_NAME unset")
+    # Default fail
+    status_code = 500
+    headers = {"Content-Type": "application/json"}
+    body = "Unhandled Server Error"
 
-    if event["httpMethod"] == "POST":
+    try:
+        global _S3_RESOURCE_TEMPLATES
+        s3resource_templates = S3ResourceTemplates(_S3_RESOURCE_TEMPLATES)
+        if not s3resource_templates.bucket_name:
+            raise EnvUnsetError("env TEMPLATE_BUCKET_NAME unset")
 
-        global _S3_RESOURCE_GENERATED_DOCUMENTS
-        s3resource_generated_documents = S3ResoureGeneratedDocuments(
-            _S3_RESOURCE_GENERATED_DOCUMENTS
-        )
-        if not s3resource_generated_documents.bucket_name:
-            raise Exception("env GENERATED_DOCUMENTS_BUCKET_NAME unset")
+        if event["httpMethod"] == "POST":
+            global _S3_RESOURCE_GENERATED_DOCUMENTS
+            s3resource_generated_documents = S3ResoureGeneratedDocuments(
+                _S3_RESOURCE_GENERATED_DOCUMENTS
+            )
+            if not s3resource_generated_documents.bucket_name:
+                raise EnvUnsetError("env GENERATED_DOCUMENTS_BUCKET_NAME unset")
 
-        generated_document_url = "https://{bucket}.s3.{region}.amazonaws.com/{key}"
-        download_path = Path(f"/tmp/template-{uuid.uuid4()}.docx")
-        # TODO: template as queryStringParameter
-        template = json.loads(event["body"])["template"]
+            generated_document_url = "https://{bucket}.s3.{region}.amazonaws.com/{key}"
+            download_path = Path(f"/tmp/template-{uuid.uuid4()}.docx")
+            # TODO: template as queryStringParameter
+            template = json.loads(event["body"])["template"]
+            download_template(
+                s3resource_templates, key=template, filename=download_path
+            )
 
-        template_downloaded = download_template(
-            s3resource_templates, key=template, filename=download_path
-        )
-        # TODO: move into download_template
-        if not template_downloaded:
-            raise Exception("Failed to get template")
+            upload_path = Path(f"/tmp/generated-{uuid.uuid4()}.docx")
+            generate_document(documentpath=upload_path, templatepath=download_path)
+            generated_document_key = get_generated_document_key()
 
-        upload_path = Path(f"/tmp/generated-{uuid.uuid4()}.docx")
-        generate_document(documentpath=upload_path, templatepath=download_path)
-        generated_document_key = get_generated_document_key()
+            upload_generated_document(
+                s3resource_generated_documents,
+                key=generated_document_key,
+                filename=upload_path,
+            )
 
-        uploaded_generated_document = upload_generated_document(
-            s3resource_generated_documents,
-            key=generated_document_key,
-            filename=upload_path,
-        )
-        # TODO: move into upload_generated_document
-        if not uploaded_generated_document:
-            raise Exception("Failed to upload generated document")
+            # TODO: write recreatable content to a dynamodb table
+            # TODO: sns for prior art download
 
-        # TODO: write recreatable content to a dynamodb table
-        # TODO: sns for prior art download
+            status_code = 201
+            headers["Location"] = generated_document_url.format(
+                bucket=s3resource_generated_documents.bucket_name,
+                region=REGION,
+                key=generated_document_key,
+            )
+            body = "OK"
 
+        else:
+            keys = [obj.key for obj in s3resource_templates.bucket.objects.all()]
+            status_code = 200
+            body = json.dumps(keys)
+
+    except TemplateNotFoundError as e:
+        body = str(e)
+        status_code = 404
+
+    except EnvUnsetError as e:
+        body = str(e)
+        status_code = 500
+
+    except UploadFailError as e:
+        body = str(e)
+        status_code = 500
+
+    finally:
         return {
-            "statusCode": 201,
-            "headers": {
-                "Content-Type": "application/json",
-                "Location": generated_document_url.format(
-                    bucket=s3resource_generated_documents.bucket_name,
-                    region=REGION,
-                    key=generated_document_key,
-                ),
-            },
+            "statusCode": status_code,
+            "headers": headers,
+            "body": body,
         }
-
-    keys = [obj.key for obj in s3resource_templates.bucket.objects.all()]
-
-    return {
-        "statusCode": 200,
-        "headers": {"Content-Type": "application/json"},
-        "body": json.dumps(keys),
-    }
