@@ -8,13 +8,15 @@ location_url = "https://{bucket}.s3.{region}.amazonaws.com/{key}"
 
 @pytest.mark.parametrize("event", ["blank_template_doc"], indirect=True)
 @pytest.mark.parametrize(
-    "mock_s3_resource_templates_with_template", [("blank_template_doc",)], indirect=True
+    "mock_s3_resource_templates_with_templates",
+    [("blank_template_doc",)],
+    indirect=True,
 )
 def test_valid_POST_event_returns_200_and_location(
     monkeypatch,
     filenames,
     mock_s3_resource_generated_documents,
-    mock_s3_resource_templates_with_template,
+    mock_s3_resource_templates_with_templates,
     event,
 ):
     monkeypatch.setattr(
@@ -23,7 +25,7 @@ def test_valid_POST_event_returns_200_and_location(
     )
     monkeypatch.setattr(
         "functions.documents.app.S3ResourceTemplates",
-        lambda _: mock_s3_resource_templates_with_template,
+        lambda _: mock_s3_resource_templates_with_templates,
     )
     monkeypatch.setattr("functions.documents.app.REGION", "us-east-1")
 
@@ -94,12 +96,14 @@ def test_unset_generated_documents_bucket_name_env_returns_500_error(
 
 @pytest.mark.parametrize("event", ["blank_template_doc"], indirect=True)
 @pytest.mark.parametrize(
-    "mock_s3_resource_templates_with_template", [("blank_template_doc",)], indirect=True
+    "mock_s3_resource_templates_with_templates",
+    [("blank_template_doc",)],
+    indirect=True,
 )
 def test_failed_upload_returns_500(
     monkeypatch,
     mock_s3_resource_generated_documents,
-    mock_s3_resource_templates_with_template,
+    mock_s3_resource_templates_with_templates,
     event,
 ):
     def mock_upload_file(*args, **kwargs):
@@ -112,7 +116,7 @@ def test_failed_upload_returns_500(
     )
     monkeypatch.setattr(
         "functions.documents.app.S3ResourceTemplates",
-        lambda _: mock_s3_resource_templates_with_template,
+        lambda _: mock_s3_resource_templates_with_templates,
     )
 
     response = lambda_handler(event=event, context=None)
@@ -122,14 +126,16 @@ def test_failed_upload_returns_500(
 
 @pytest.mark.parametrize("event", ["list_docs"], indirect=True)
 @pytest.mark.parametrize(
-    "mock_s3_resource_templates_with_template", [("blank_template_doc",)], indirect=True
+    "mock_s3_resource_templates_with_templates",
+    [("blank_template_doc",)],
+    indirect=True,
 )
 def test_valid_GET_request_lists_available_templates(
-    monkeypatch, mock_s3_resource_templates_with_template, event
+    monkeypatch, mock_s3_resource_templates_with_templates, event
 ):
     monkeypatch.setattr(
         "functions.documents.app.S3ResourceTemplates",
-        lambda _: mock_s3_resource_templates_with_template,
+        lambda _: mock_s3_resource_templates_with_templates,
     )
     response = lambda_handler(event=event, context=None)
     assert response["statusCode"] == 200
