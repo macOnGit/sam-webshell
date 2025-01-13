@@ -1,4 +1,4 @@
-# TODO: split into multiple conftest files
+# TODO: split into multiple conftest files - real fixtures and mock fixtures
 # https://stackoverflow.com/a/27068195
 
 import json
@@ -59,26 +59,28 @@ def mock_s3_resource(aws_credentials):
 
 
 @pytest.fixture
-def mock_templates_bucket(filenames, mock_s3_client):
+def mock_templates_bucket(filenames, mock_s3_client) -> str:
     mock_s3_client.create_bucket(Bucket=filenames.template_bucket_name)
     return filenames.template_bucket_name
 
 
 @pytest.fixture
-def mock_generated_documents_bucket(filenames, mock_s3_client):
+def mock_generated_documents_bucket(filenames, mock_s3_client) -> str:
     mock_s3_client.create_bucket(Bucket=filenames.generated_documents_bucket_name)
     return filenames.generated_documents_bucket_name
 
 
 @pytest.fixture
-def mock_s3_templates(mock_templates_bucket, mock_s3_resource):
+def mock_s3_resource_templates(mock_templates_bucket, mock_s3_resource):
     return S3ResourceTemplates(
         {"resource": mock_s3_resource, "bucket_name": mock_templates_bucket}
     )
 
 
 @pytest.fixture
-def mock_s3_generated_documents(mock_generated_documents_bucket, mock_s3_resource):
+def mock_s3_resource_generated_documents(
+    mock_generated_documents_bucket, mock_s3_resource
+):
     return S3ResoureGeneratedDocuments(
         {
             "resource": mock_s3_resource,
@@ -88,11 +90,14 @@ def mock_s3_generated_documents(mock_generated_documents_bucket, mock_s3_resourc
 
 
 @pytest.fixture
-def mock_s3_templates_with_template(request, mock_s3_templates):
+# TODO: accept list of templates
+def mock_s3_resource_templates_with_template(request, mock_s3_resource_templates):
     template = request.param
     docx_file = base_path / "fixtures" / f"{template}.docx"
-    mock_s3_templates.bucket.upload_file(docx_file, f"documents/{template}.docx")
-    return mock_s3_templates
+    mock_s3_resource_templates.bucket.upload_file(
+        docx_file, f"documents/{template}.docx"
+    )
+    return mock_s3_resource_templates
 
 
 @pytest.fixture
@@ -137,6 +142,7 @@ def general_amdt_doc():
 
 
 @pytest.fixture(scope="session")
+# TODO: use request param instead of blank_template_doc and general_amdt_doc
 def template_bucket_with_templates(
     template_bucket, blank_template_doc, general_amdt_doc
 ):

@@ -1,28 +1,29 @@
 import pytest
 from functions.documents.app import lambda_handler
 from botocore.exceptions import ClientError
+import json
 
 location_url = "https://{bucket}.s3.{region}.amazonaws.com/{key}"
 
 
 @pytest.mark.parametrize("event", ["blank_template_doc"], indirect=True)
 @pytest.mark.parametrize(
-    "mock_s3_templates_with_template", ["blank_template_doc"], indirect=True
+    "mock_s3_resource_templates_with_template", ["blank_template_doc"], indirect=True
 )
-def test_valid_event_returns_200_and_location(
+def test_valid_POST_event_returns_200_and_location(
     monkeypatch,
     filenames,
-    mock_s3_generated_documents,
-    mock_s3_templates_with_template,
+    mock_s3_resource_generated_documents,
+    mock_s3_resource_templates_with_template,
     event,
 ):
     monkeypatch.setattr(
         "functions.documents.app.S3ResoureGeneratedDocuments",
-        lambda _: mock_s3_generated_documents,
+        lambda _: mock_s3_resource_generated_documents,
     )
     monkeypatch.setattr(
         "functions.documents.app.S3ResourceTemplates",
-        lambda _: mock_s3_templates_with_template,
+        lambda _: mock_s3_resource_templates_with_template,
     )
     monkeypatch.setattr("functions.documents.app.REGION", "us-east-1")
 
@@ -39,17 +40,17 @@ def test_valid_event_returns_200_and_location(
 @pytest.mark.parametrize("event", ["invalid_template"], indirect=True)
 def test_invalid_template_returns_404_template_not_found(
     monkeypatch,
-    mock_s3_generated_documents,
-    mock_s3_templates,
+    mock_s3_resource_generated_documents,
+    mock_s3_resource_templates,
     event,
 ):
     monkeypatch.setattr(
         "functions.documents.app.S3ResoureGeneratedDocuments",
-        lambda _: mock_s3_generated_documents,
+        lambda _: mock_s3_resource_generated_documents,
     )
     monkeypatch.setattr(
         "functions.documents.app.S3ResourceTemplates",
-        lambda _: mock_s3_templates,
+        lambda _: mock_s3_resource_templates,
     )
 
     response = lambda_handler(event=event, context=None)
@@ -59,12 +60,12 @@ def test_invalid_template_returns_404_template_not_found(
 
 @pytest.mark.parametrize("event", ["blank_template_doc"], indirect=True)
 def test_unset_template_bucket_name_env_returns_500_error(
-    monkeypatch, mock_s3_templates, event
+    monkeypatch, mock_s3_resource_templates, event
 ):
-    mock_s3_templates.bucket_name = None
+    mock_s3_resource_templates.bucket_name = None
     monkeypatch.setattr(
         "functions.documents.app.S3ResourceTemplates",
-        lambda _: mock_s3_templates,
+        lambda _: mock_s3_resource_templates,
     )
 
     response = lambda_handler(event=event, context=None)
@@ -74,16 +75,16 @@ def test_unset_template_bucket_name_env_returns_500_error(
 
 @pytest.mark.parametrize("event", ["blank_template_doc"], indirect=True)
 def test_unset_generated_documents_bucket_name_env_returns_500_error(
-    monkeypatch, mock_s3_templates, mock_s3_generated_documents, event
+    monkeypatch, mock_s3_resource_templates, mock_s3_resource_generated_documents, event
 ):
-    mock_s3_generated_documents.bucket_name = None
+    mock_s3_resource_generated_documents.bucket_name = None
     monkeypatch.setattr(
         "functions.documents.app.S3ResourceTemplates",
-        lambda _: mock_s3_templates,
+        lambda _: mock_s3_resource_templates,
     )
     monkeypatch.setattr(
         "functions.documents.app.S3ResoureGeneratedDocuments",
-        lambda _: mock_s3_generated_documents,
+        lambda _: mock_s3_resource_generated_documents,
     )
 
     response = lambda_handler(event=event, context=None)
@@ -93,25 +94,25 @@ def test_unset_generated_documents_bucket_name_env_returns_500_error(
 
 @pytest.mark.parametrize("event", ["blank_template_doc"], indirect=True)
 @pytest.mark.parametrize(
-    "mock_s3_templates_with_template", ["blank_template_doc"], indirect=True
+    "mock_s3_resource_templates_with_template", ["blank_template_doc"], indirect=True
 )
 def test_failed_upload_returns_500(
     monkeypatch,
-    mock_s3_generated_documents,
-    mock_s3_templates_with_template,
+    mock_s3_resource_generated_documents,
+    mock_s3_resource_templates_with_template,
     event,
 ):
     def mock_upload_file(*args, **kwargs):
         raise ClientError(error_response={}, operation_name="")
 
-    mock_s3_generated_documents.bucket.upload_file = mock_upload_file
+    mock_s3_resource_generated_documents.bucket.upload_file = mock_upload_file
     monkeypatch.setattr(
         "functions.documents.app.S3ResoureGeneratedDocuments",
-        lambda _: mock_s3_generated_documents,
+        lambda _: mock_s3_resource_generated_documents,
     )
     monkeypatch.setattr(
         "functions.documents.app.S3ResourceTemplates",
-        lambda _: mock_s3_templates_with_template,
+        lambda _: mock_s3_resource_templates_with_template,
     )
 
     response = lambda_handler(event=event, context=None)
@@ -119,4 +120,19 @@ def test_failed_upload_returns_500(
     assert "Failed to upload generated document" in response["body"]
 
 
-# TODO: test_get_list_of_available_documents
+@pytest.mark.parametrize("event", ["list_docs"], indirect=True)
+@pytest.mark.parametrize(
+    "mock_s3_resource_templates_with_template", ["blank_template_doc"], indirect=True
+)
+def test_valid_GET_request_lists_available_templates(
+    monkeypatch, mock_s3_resource_templates_with_template, event
+):
+    monkeypatch.setattr(
+        "functions.documents.app.S3ResourceTemplates",
+        lambda _: mock_s3_resource_templates_with_template,
+    )
+    response = lambda_handler(event=event, context=None)
+    assert response["statusCode"] == 200
+    assert (
+        json.loads(response["body"])[0] == "documents/blank_template_doc.docx"
+    ), "Did not find document in bucket"
