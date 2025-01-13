@@ -8,7 +8,7 @@ location_url = "https://{bucket}.s3.{region}.amazonaws.com/{key}"
 
 @pytest.mark.parametrize("event", ["blank_template_doc"], indirect=True)
 @pytest.mark.parametrize(
-    "mock_s3_resource_templates_with_template", ["blank_template_doc"], indirect=True
+    "mock_s3_resource_templates_with_template", [("blank_template_doc",)], indirect=True
 )
 def test_valid_POST_event_returns_200_and_location(
     monkeypatch,
@@ -94,7 +94,7 @@ def test_unset_generated_documents_bucket_name_env_returns_500_error(
 
 @pytest.mark.parametrize("event", ["blank_template_doc"], indirect=True)
 @pytest.mark.parametrize(
-    "mock_s3_resource_templates_with_template", ["blank_template_doc"], indirect=True
+    "mock_s3_resource_templates_with_template", [("blank_template_doc",)], indirect=True
 )
 def test_failed_upload_returns_500(
     monkeypatch,
@@ -122,7 +122,7 @@ def test_failed_upload_returns_500(
 
 @pytest.mark.parametrize("event", ["list_docs"], indirect=True)
 @pytest.mark.parametrize(
-    "mock_s3_resource_templates_with_template", ["blank_template_doc"], indirect=True
+    "mock_s3_resource_templates_with_template", [("blank_template_doc",)], indirect=True
 )
 def test_valid_GET_request_lists_available_templates(
     monkeypatch, mock_s3_resource_templates_with_template, event

@@ -92,11 +92,12 @@ def mock_s3_resource_generated_documents(
 @pytest.fixture
 # TODO: accept list of templates
 def mock_s3_resource_templates_with_template(request, mock_s3_resource_templates):
-    template = request.param
-    docx_file = base_path / "fixtures" / f"{template}.docx"
-    mock_s3_resource_templates.bucket.upload_file(
-        docx_file, f"documents/{template}.docx"
-    )
+    templates = request.param
+    for template in templates:
+        docx_file = base_path / "fixtures" / f"{template}.docx"
+        mock_s3_resource_templates.bucket.upload_file(
+            docx_file, f"documents/{template}.docx"
+        )
     return mock_s3_resource_templates
 
 
