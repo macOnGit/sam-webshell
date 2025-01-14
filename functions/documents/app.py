@@ -5,12 +5,7 @@ from boto3 import resource
 from botocore.exceptions import ClientError
 from os import environ
 from pathlib import Path
-
-# TODO: stub implementation, use DocxTemplate for real
-# TODO: use scheme validator
-# from aws_lambda_powertools.utilities.validation import validator
-from shutil import copy
-
+from docxtpl import DocxTemplate
 from aws_lambda_powertools.utilities.data_classes import APIGatewayProxyEvent
 from aws_lambda_powertools.utilities.typing import LambdaContext
 
@@ -85,14 +80,10 @@ def upload_generated_document(
         raise UploadFailError(f"Failed to upload generated document: {key}")
 
 
-# TODO: pass jinja_env for including custom filters
 def generate_document(documentpath: Path, templatepath: Path, *args, **kwargs):
-
-    # TODO: use DocxTemplate lib
-    # docxtemplate = DocxTemplate(templatepath)
-    # docxtemplate.render(kwags.get('content', {}), jinja_env=kwargs.get("jinja_env"))
-    # docxtemplate.save(filepath)
-    copy(templatepath, documentpath)
+    docxtemplate = DocxTemplate(templatepath)
+    docxtemplate.render(kwargs.get("content", {}), jinja_env=kwargs.get("jinja_env"))
+    docxtemplate.save(documentpath)
 
 
 def get_generated_document_key() -> str:
