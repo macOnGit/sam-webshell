@@ -1,12 +1,8 @@
 import os
-from pathlib import Path
 import pytest
 import boto3
 from moto import mock_aws
 from functions.documents.app import S3ResourceTemplates, S3ResoureGeneratedDocuments
-
-
-base_path = Path(__file__).parents[2]
 
 
 @pytest.fixture(scope="function")
@@ -66,11 +62,20 @@ def mock_s3_resource_generated_documents(
 
 
 @pytest.fixture
-def mock_s3_resource_templates_with_templates(request, mock_s3_resource_templates):
-    templates = request.param
-    for template in templates:
-        docx_file = base_path / "fixtures" / f"{template}.docx"
-        mock_s3_resource_templates.bucket.upload_file(
-            docx_file, f"documents/{template}.docx"
-        )
+def patched_s3_resource_generated_documents(
+    monkeypatch, mock_s3_resource_generated_documents
+):
+    monkeypatch.setattr(
+        "functions.documents.app.S3ResoureGeneratedDocuments",
+        lambda _: mock_s3_resource_generated_documents,
+    )
+    return mock_s3_resource_generated_documents
+
+
+@pytest.fixture
+def patched_s3_resource_templates(monkeypatch, mock_s3_resource_templates):
+    monkeypatch.setattr(
+        "functions.documents.app.S3ResourceTemplates",
+        lambda _: mock_s3_resource_templates,
+    )
     return mock_s3_resource_templates

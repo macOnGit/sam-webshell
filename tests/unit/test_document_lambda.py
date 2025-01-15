@@ -1,29 +1,8 @@
 import pytest
-from functions.documents.app import lambda_handler
+from functions.documents.app import lambda_handler, S3Resource
 from botocore.exceptions import ClientError
+from pathlib import Path
 import json
-
-location_url = "https://{bucket}.s3.{region}.amazonaws.com/{key}"
-
-
-@pytest.fixture
-def patched_s3_resource_generated_documents(
-    monkeypatch, mock_s3_resource_generated_documents
-):
-    monkeypatch.setattr(
-        "functions.documents.app.S3ResoureGeneratedDocuments",
-        lambda _: mock_s3_resource_generated_documents,
-    )
-    return mock_s3_resource_generated_documents
-
-
-@pytest.fixture
-def patched_s3_resource_templates(monkeypatch, mock_s3_resource_templates):
-    monkeypatch.setattr(
-        "functions.documents.app.S3ResourceTemplates",
-        lambda _: mock_s3_resource_templates,
-    )
-    return mock_s3_resource_templates
 
 
 @pytest.fixture(autouse=True)
@@ -31,24 +10,26 @@ def patched_region(monkeypatch):
     monkeypatch.setattr("functions.documents.app.REGION", "us-east-1")
 
 
+def upload_to_s3_resource(
+    resource: S3Resource, base_path: Path, filenames: list, prefix: str
+):
+    for filename in filenames:
+        docx_file = base_path / "fixtures" / f"{filename}.docx"
+        resource.bucket.upload_file(docx_file, f"{prefix}/{filename}.docx")
+
+
 @pytest.mark.usefixtures("patched_s3_resource_generated_documents")
 @pytest.mark.parametrize("event", ["blank_template_doc"], indirect=True)
-@pytest.mark.parametrize(
-    "mock_s3_resource_templates_with_templates",
-    [("blank_template_doc",)],
-    indirect=True,
-)
 def test_valid_POST_event_returns_200_and_location(
-    monkeypatch,
-    filenames,
-    mock_s3_resource_templates_with_templates,
-    event,
+    filenames, patched_s3_resource_templates, event, pytestconfig
 ):
-    monkeypatch.setattr(
-        "functions.documents.app.S3ResourceTemplates",
-        lambda _: mock_s3_resource_templates_with_templates,
+    upload_to_s3_resource(
+        patched_s3_resource_templates,
+        pytestconfig.rootpath,
+        ["blank_template_doc"],
+        "documents",
     )
-
+    location_url = "https://{bucket}.s3.{region}.amazonaws.com/{key}"
     response = lambda_handler(event=event, context=None)
     assert response["statusCode"] == 201
     assert response["headers"]["Location"] == location_url.format(
@@ -92,43 +73,36 @@ def test_unset_generated_documents_bucket_name_env_returns_500_error(
 
 
 @pytest.mark.parametrize("event", ["blank_template_doc"], indirect=True)
-@pytest.mark.parametrize(
-    "mock_s3_resource_templates_with_templates",
-    [("blank_template_doc",)],
-    indirect=True,
-)
 def test_failed_upload_returns_500(
-    monkeypatch,
     patched_s3_resource_generated_documents,
-    mock_s3_resource_templates_with_templates,
+    patched_s3_resource_templates,
     event,
+    pytestconfig,
 ):
     def mock_upload_file(*args, **kwargs):
         raise ClientError(error_response={}, operation_name="")
 
-    patched_s3_resource_generated_documents.bucket.upload_file = mock_upload_file
-    monkeypatch.setattr(
-        "functions.documents.app.S3ResourceTemplates",
-        lambda _: mock_s3_resource_templates_with_templates,
+    upload_to_s3_resource(
+        patched_s3_resource_templates,
+        pytestconfig.rootpath,
+        ["blank_template_doc"],
+        "documents",
     )
-
+    patched_s3_resource_generated_documents.bucket.upload_file = mock_upload_file
     response = lambda_handler(event=event, context=None)
     assert response["statusCode"] == 500
     assert "Failed to upload generated document" in response["body"]
 
 
 @pytest.mark.parametrize("event", ["list_docs"], indirect=True)
-@pytest.mark.parametrize(
-    "mock_s3_resource_templates_with_templates",
-    [("blank_template_doc",)],
-    indirect=True,
-)
 def test_valid_GET_request_lists_available_templates(
-    monkeypatch, mock_s3_resource_templates_with_templates, event
+    patched_s3_resource_templates, event, pytestconfig
 ):
-    monkeypatch.setattr(
-        "functions.documents.app.S3ResourceTemplates",
-        lambda _: mock_s3_resource_templates_with_templates,
+    upload_to_s3_resource(
+        patched_s3_resource_templates,
+        pytestconfig.rootpath,
+        ["blank_template_doc"],
+        "documents",
     )
     response = lambda_handler(event=event, context=None)
     assert response["statusCode"] == 200
