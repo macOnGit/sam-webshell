@@ -42,7 +42,7 @@ def test_valid_POST_event_returns_200_and_location(
         region="us-east-1",
         key="documents/test.docx",
     )
-    assert response["body"] == "OK"
+    assert json.loads(response["body"]) == "OK"
 
 
 @pytest.mark.usefixtures(

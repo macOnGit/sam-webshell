@@ -148,7 +148,7 @@ def lambda_handler(event: APIGatewayProxyEvent, context: LambdaContext):
         else:
             keys = [obj.key for obj in s3resource_templates.bucket.objects.all()]
             status_code = 200
-            body = json.dumps(keys)
+            body = keys
 
     except TemplateNotFoundError as e:
         body = str(e)
@@ -166,5 +166,5 @@ def lambda_handler(event: APIGatewayProxyEvent, context: LambdaContext):
         return {
             "statusCode": status_code,
             "headers": headers,
-            "body": body,
+            "body": json.dumps(body),
         }
