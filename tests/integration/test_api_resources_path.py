@@ -17,7 +17,7 @@ class TestDocumentsDir:
     def test_post_returns_201_and_location_header(self, api_gateway_url):
         response = requests.post(
             f"{api_gateway_url}/documents",
-            json={"template": "documents/blank_template_doc.docx"},
+            params={"template": "documents/blank_template_doc.docx"},
         )
         assert response.status_code == 201
         # TODO: don't hardcode bucket, region, or key
