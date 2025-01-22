@@ -1,11 +1,11 @@
 {
-  "body": "{\"template\": \"documents/blank_template_doc.docx\"}",
+  "body": "",
   "resource": "/{proxy+}",
   "path": "/path/to/resource",
   "httpMethod": "POST",
   "isBase64Encoded": true,
   "queryStringParameters": {
-    "foo": "bar"
+    "template": "documents/blank_template_doc.docx"
   },
   "multiValueQueryStringParameters": {
     "foo": [

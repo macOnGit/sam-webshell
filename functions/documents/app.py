@@ -56,6 +56,11 @@ class UploadFailError(Exception):
     pass
 
 
+class MissingQueryParamError(Exception):
+    # TODO: remove once validation setup
+    pass
+
+
 def download_template(s3resource: S3Resource, *, key: str, filename: str):
     # key - name of key in source bucket
     # filename - path downloaded file
@@ -84,6 +89,15 @@ def generate_document(documentpath: Path, templatepath: Path, *args, **kwargs):
     docxtemplate = DocxTemplate(templatepath)
     docxtemplate.render(kwargs.get("content", {}), jinja_env=kwargs.get("jinja_env"))
     docxtemplate.save(documentpath)
+
+
+def get_template(event: APIGatewayProxyEvent):
+    # TODO: refactor when validation added
+    try:
+        return event["queryStringParameters"]["template"]
+    except KeyError as e:
+        logger.error(e)
+        raise MissingQueryParamError("Missing template query parameter")
 
 
 def get_generated_document_key() -> str:
@@ -118,8 +132,7 @@ def lambda_handler(event: APIGatewayProxyEvent, context: LambdaContext):
 
             generated_document_url = "https://{bucket}.s3.{region}.amazonaws.com/{key}"
             download_path = Path(f"/tmp/template-{uuid.uuid4()}.docx")
-            # TODO: template as queryStringParameter
-            template = json.loads(event["body"])["template"]
+            template = get_template(event)
             download_template(
                 s3resource_templates, key=template, filename=download_path
             )
@@ -153,6 +166,11 @@ def lambda_handler(event: APIGatewayProxyEvent, context: LambdaContext):
     except TemplateNotFoundError as e:
         body = str(e)
         status_code = 404
+
+    except MissingQueryParamError as e:
+        # TODO: remove when validation setup
+        body = str(e)
+        status_code = 400
 
     except EnvUnsetError as e:
         body = str(e)

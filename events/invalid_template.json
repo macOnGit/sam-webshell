@@ -1,11 +1,11 @@
 {
-  "body": "{\"template\": \"documents/does_not_exist.docx\"}",
+  "body": "",
   "resource": "/{proxy+}",
   "path": "/path/to/resource",
   "httpMethod": "POST",
   "isBase64Encoded": true,
   "queryStringParameters": {
-    "foo": "bar"
+    "template": "documents/does_not_exist.docx"
   },
   "multiValueQueryStringParameters": {
     "foo": [

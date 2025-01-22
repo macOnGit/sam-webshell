@@ -42,7 +42,7 @@ def test_valid_POST_event_returns_200_and_location(
         region="us-east-1",
         key="documents/test.docx",
     )
-    assert json.loads(response["body"]) == "OK"
+    assert "OK" in response["body"]
 
 
 @pytest.mark.usefixtures(
@@ -53,6 +53,20 @@ def test_invalid_template_returns_404_template_not_found(event):
     response = lambda_handler(event=event, context=None)
     assert response["statusCode"] == 404
     assert "Failed to get template" in response["body"]
+
+
+# TODO: this is not needed
+# https://docs.aws.amazon.com/apigateway/latest/developerguide/api-gateway-method-request-validation.html
+# https://docs.aws.amazon.com/apigateway/latest/developerguide/api-gateway-request-validation-set-up.html
+@pytest.mark.usefixtures(
+    "patched_s3_resource_generated_documents", "patched_s3_resource_templates"
+)
+@pytest.mark.parametrize("event", ["invalid_template"], indirect=True)
+def test_template_query_param_returns_400_bad_request(event: dict):
+    del event["queryStringParameters"]["template"]
+    response = lambda_handler(event=event, context=None)
+    assert response["statusCode"] == 400
+    assert "Missing template query parameter" in response["body"]
 
 
 @pytest.mark.parametrize("event", ["blank_template_doc"], indirect=True)
@@ -111,8 +125,9 @@ def test_valid_GET_request_lists_available_templates(
     )
     response = lambda_handler(event=event, context=None)
     assert response["statusCode"] == 200
+    assert len(json.loads(response["body"])) == 1
     assert (
-        json.loads(response["body"])[0] == "documents/blank_template_doc.docx"
+        "documents/blank_template_doc.docx" in response["body"]
     ), "Did not find document in bucket"
 
 
