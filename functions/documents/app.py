@@ -9,7 +9,7 @@ from docxtpl import DocxTemplate
 from aws_lambda_powertools.utilities.data_classes import APIGatewayProxyEvent
 from aws_lambda_powertools.utilities.typing import LambdaContext
 from aws_lambda_powertools.utilities.validation import validate, SchemaValidationError
-from .schemas import INPUT_SCHEMA
+from documents.schemas import INPUT_SCHEMA
 
 
 _S3_RESOURCE_TEMPLATES = {
