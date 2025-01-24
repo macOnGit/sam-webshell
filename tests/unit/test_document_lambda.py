@@ -55,9 +55,6 @@ def test_invalid_template_returns_404_template_not_found(event):
     assert "Failed to get template" in response["body"]
 
 
-# TODO: this is not needed
-# https://docs.aws.amazon.com/apigateway/latest/developerguide/api-gateway-method-request-validation.html
-# https://docs.aws.amazon.com/apigateway/latest/developerguide/api-gateway-request-validation-set-up.html
 @pytest.mark.usefixtures(
     "patched_s3_resource_generated_documents", "patched_s3_resource_templates"
 )
@@ -66,7 +63,7 @@ def test_template_query_param_returns_400_bad_request(event: dict):
     del event["queryStringParameters"]["template"]
     response = lambda_handler(event=event, context=None)
     assert response["statusCode"] == 400
-    assert "Missing template query parameter" in response["body"]
+    assert "Failed schema validation" in response["body"]
 
 
 @pytest.mark.parametrize("event", ["blank_template_doc"], indirect=True)

@@ -8,6 +8,9 @@ from pathlib import Path
 from docxtpl import DocxTemplate
 from aws_lambda_powertools.utilities.data_classes import APIGatewayProxyEvent
 from aws_lambda_powertools.utilities.typing import LambdaContext
+from aws_lambda_powertools.utilities.validation import validate, SchemaValidationError
+from .schemas import INPUT_SCHEMA
+
 
 _S3_RESOURCE_TEMPLATES = {
     "resource": resource("s3"),
@@ -56,11 +59,6 @@ class UploadFailError(Exception):
     pass
 
 
-class MissingQueryParamError(Exception):
-    # TODO: remove once validation setup
-    pass
-
-
 def download_template(s3resource: S3Resource, *, key: str, filename: str):
     # key - name of key in source bucket
     # filename - path downloaded file
@@ -91,17 +89,9 @@ def generate_document(documentpath: Path, templatepath: Path, *args, **kwargs):
     docxtemplate.save(documentpath)
 
 
-def get_template(event: APIGatewayProxyEvent):
-    # TODO: refactor when validation added
-    try:
-        return event["queryStringParameters"]["template"]
-    except KeyError as e:
-        logger.error(e)
-        raise MissingQueryParamError("Missing template query parameter")
-
-
 def get_generated_document_key() -> str:
     # TODO: get generated document key name from parameter store
+    # See: https://docs.powertools.aws.dev/lambda/python/latest/utilities/parameters/
     return "documents/test.docx"
 
 
@@ -117,12 +107,15 @@ def lambda_handler(event: APIGatewayProxyEvent, context: LambdaContext):
     body = "Unhandled Server Error"
 
     try:
+
         global _S3_RESOURCE_TEMPLATES
         s3resource_templates = S3ResourceTemplates(_S3_RESOURCE_TEMPLATES)
         if not s3resource_templates.bucket_name:
             raise EnvUnsetError("env TEMPLATE_BUCKET_NAME unset")
 
         if event["httpMethod"] == "POST":
+            validate(event=event, schema=INPUT_SCHEMA)
+
             global _S3_RESOURCE_GENERATED_DOCUMENTS
             s3resource_generated_documents = S3ResoureGeneratedDocuments(
                 _S3_RESOURCE_GENERATED_DOCUMENTS
@@ -132,11 +125,11 @@ def lambda_handler(event: APIGatewayProxyEvent, context: LambdaContext):
 
             generated_document_url = "https://{bucket}.s3.{region}.amazonaws.com/{key}"
             download_path = Path(f"/tmp/template-{uuid.uuid4()}.docx")
-            template = get_template(event)
+            template = event["queryStringParameters"]["template"]
+
             download_template(
                 s3resource_templates, key=template, filename=download_path
             )
-
             upload_path = Path(f"/tmp/generated-{uuid.uuid4()}.docx")
             generate_document(documentpath=upload_path, templatepath=download_path)
             generated_document_key = get_generated_document_key()
@@ -167,8 +160,8 @@ def lambda_handler(event: APIGatewayProxyEvent, context: LambdaContext):
         body = str(e)
         status_code = 404
 
-    except MissingQueryParamError as e:
-        # TODO: remove when validation setup
+    except SchemaValidationError as e:
+        logger.error(e)
         body = str(e)
         status_code = 400
 

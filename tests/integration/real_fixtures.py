@@ -107,6 +107,8 @@ def api_gateway_url(stack_outputs):
 # usage: @pytest.mark.parametrize("event", ["apigw_event"], indirect=True)
 @pytest.fixture
 def event(request):
+    # TODO: validate event scheme
+    # from aws_lambda_powertools.utilities.validation import validate
     filename = request.param
     json_file = base_path / "events" / f"{filename}.json"
     with json_file.open() as fp:
