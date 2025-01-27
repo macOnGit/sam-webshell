@@ -9,7 +9,28 @@ from docxtpl import DocxTemplate
 from aws_lambda_powertools.utilities.data_classes import APIGatewayProxyEvent
 from aws_lambda_powertools.utilities.typing import LambdaContext
 from aws_lambda_powertools.utilities.validation import validate, SchemaValidationError
-from .schemas import INPUT_SCHEMA
+
+INPUT_SCHEMA = {
+    "$schema": "https://json-schema.org/draft/2020-12/schema",
+    "$id": "https://example.com/documents.schema.json",
+    "title": "Document Content",
+    "description": "Content for a document",
+    "type": "object",
+    "required": ["queryStringParameters"],
+    "properties": {
+        "queryStringParameters": {
+            "description": "The template to base the document on",
+            "type": "object",
+            "required": ["template"],
+            "properties": {
+                "template": {
+                    "$id": "#/properties/queryStringParameters/template",
+                    "type": "string",
+                }
+            },
+        }
+    },
+}
 
 
 _S3_RESOURCE_TEMPLATES = {
