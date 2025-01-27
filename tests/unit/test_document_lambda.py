@@ -110,6 +110,26 @@ def test_failed_upload_returns_500(
     assert "Failed to upload generated document" in response["body"]
 
 
+@pytest.mark.usefixtures("patched_s3_resource_generated_documents")
+@pytest.mark.parametrize("event", ["blank_template_doc"], indirect=True)
+def test_useful_response_to_unhandled_exception(
+    patched_s3_resource_templates, event, monkeypatch, pytestconfig
+):
+    def mock_error(*args, **kwargs):
+        raise Exception("Something broke")
+
+    upload_to_s3_resource(
+        patched_s3_resource_templates,
+        pytestconfig.rootpath,
+        ["blank_template_doc"],
+        "documents",
+    )
+    monkeypatch.setattr("functions.documents.app.generate_document", mock_error)
+    response = lambda_handler(event=event, context=None)
+    assert response["statusCode"] == 500
+    assert "Something broke" in response["body"]
+
+
 @pytest.mark.parametrize("event", ["list_docs"], indirect=True)
 def test_valid_GET_request_lists_available_templates(
     patched_s3_resource_templates, event, pytestconfig

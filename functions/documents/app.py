@@ -9,7 +9,7 @@ from docxtpl import DocxTemplate
 from aws_lambda_powertools.utilities.data_classes import APIGatewayProxyEvent
 from aws_lambda_powertools.utilities.typing import LambdaContext
 from aws_lambda_powertools.utilities.validation import validate, SchemaValidationError
-from functions.documents.schemas import INPUT_SCHEMA
+from .schemas import INPUT_SCHEMA
 
 
 _S3_RESOURCE_TEMPLATES = {
@@ -101,13 +101,9 @@ def lambda_handler(event: APIGatewayProxyEvent, context: LambdaContext):
 
     logger.info("###EVENT RECIEVED", event)
 
-    # Default fail
-    status_code = 500
     headers = {"Content-Type": "application/json"}
-    body = "Unhandled Server Error"
 
     try:
-
         global _S3_RESOURCE_TEMPLATES
         s3resource_templates = S3ResourceTemplates(_S3_RESOURCE_TEMPLATES)
         if not s3resource_templates.bucket_name:
@@ -171,6 +167,10 @@ def lambda_handler(event: APIGatewayProxyEvent, context: LambdaContext):
 
     except UploadFailError as e:
         body = str(e)
+        status_code = 500
+
+    except Exception as e:
+        body = "Unhandled Server Error: " + str(e)
         status_code = 500
 
     finally:
