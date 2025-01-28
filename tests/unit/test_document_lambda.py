@@ -3,6 +3,7 @@ from functions.documents.app import lambda_handler, S3Resource
 from botocore.exceptions import ClientError
 from pathlib import Path
 import json
+from docx import Document
 
 
 @pytest.fixture(autouse=True)
@@ -18,9 +19,16 @@ def upload_to_s3_resource(
         resource.bucket.upload_file(docx_file, f"{prefix}/{filename}.docx")
 
 
-# TODO: first refactor to send context as body of request then do this
-# def get_text_from_generated_document(response):
-#     pass
+def get_text_from_generated_document(s3resource, prefix, key, tmp_path):
+    # setup
+    filename = f"{prefix}/{key}"
+    p = tmp_path / "generated.docx"
+    # download_file_to_tempfile
+    s3resource.bucket.download_file(filename, p)
+    # read_contents to stream
+    document = Document(p)
+    # return contents
+    return document.paragraphs[0].text
 
 
 @pytest.mark.usefixtures("patched_s3_resource_generated_documents")
@@ -148,18 +156,29 @@ def test_valid_GET_request_lists_available_templates(
     ), "Did not find document in bucket"
 
 
-# TODO: first refactor to send context as body of request then do this
-# @pytest.mark.parametrize("event", ["general_amendment"], indirect=True)
-# def test_passed_in_content_appears_in_generated_document(
-#     patched_s3_resource_templates, event, pytestconfig
-# ):
-#     upload_to_s3_resource(
-#         patched_s3_resource_templates,
-#         pytestconfig.rootpath,
-#         ["blank_template_doc"],
-#         "documents",
-#     )
-#     response = lambda_handler(event=event, context=None)
-#     assert response["statusCode"] == 201
-#     text = get_text_from_generated_document(response)
-#     assert "ABC-123US01" in text
+@pytest.mark.usefixtures("patched_s3_resource_generated_documents")
+@pytest.mark.parametrize("event", ["general_amdt_doc"], indirect=True)
+def test_passed_in_content_appears_in_generated_document(
+    patched_s3_resource_generated_documents,
+    patched_s3_resource_templates,
+    event,
+    pytestconfig,
+    tmp_path,
+):
+    # TODO: code smell
+    upload_to_s3_resource(
+        patched_s3_resource_templates,
+        pytestconfig.rootpath,
+        ["general_amdt_doc"],
+        "documents",
+    )
+    event["body"] = {"docket_number": "ABC-123US01"}
+    response = lambda_handler(event=event, context=None)
+    assert response["statusCode"] == 201
+    text = get_text_from_generated_document(
+        s3resource=patched_s3_resource_generated_documents,
+        prefix="documents",
+        key="test.docx",
+        tmp_path=tmp_path,
+    )
+    assert "ABC-123US01" in text

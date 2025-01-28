@@ -111,7 +111,7 @@ def generate_document(documentpath: Path, templatepath: Path, *args, **kwargs):
 
 
 def get_generated_document_key() -> str:
-    # TODO: get generated document key name from parameter store
+    # TODO: get generated document key name from parameter store - but not here
     # See: https://docs.powertools.aws.dev/lambda/python/latest/utilities/parameters/
     return "documents/test.docx"
 
@@ -128,6 +128,7 @@ def lambda_handler(event: APIGatewayProxyEvent, context: LambdaContext):
         global _S3_RESOURCE_TEMPLATES
         s3resource_templates = S3ResourceTemplates(_S3_RESOURCE_TEMPLATES)
         if not s3resource_templates.bucket_name:
+            # TODO: can this passed in via event?
             raise EnvUnsetError("env TEMPLATE_BUCKET_NAME unset")
 
         if event["httpMethod"] == "POST":
@@ -141,14 +142,21 @@ def lambda_handler(event: APIGatewayProxyEvent, context: LambdaContext):
                 raise EnvUnsetError("env GENERATED_DOCUMENTS_BUCKET_NAME unset")
 
             generated_document_url = "https://{bucket}.s3.{region}.amazonaws.com/{key}"
+            # TODO: use tempfile
             download_path = Path(f"/tmp/template-{uuid.uuid4()}.docx")
-            template = event["queryStringParameters"]["template"]
 
             download_template(
-                s3resource_templates, key=template, filename=download_path
+                s3resource_templates,
+                key=event["queryStringParameters"]["template"],
+                filename=download_path,
             )
+            # TODO: use tempfile
             upload_path = Path(f"/tmp/generated-{uuid.uuid4()}.docx")
-            generate_document(documentpath=upload_path, templatepath=download_path)
+            generate_document(
+                documentpath=upload_path,
+                templatepath=download_path,
+                content=event["body"],
+            )
             generated_document_key = get_generated_document_key()
 
             upload_generated_document(
@@ -157,8 +165,8 @@ def lambda_handler(event: APIGatewayProxyEvent, context: LambdaContext):
                 filename=upload_path,
             )
 
-            # TODO: write recreatable content to a dynamodb table
-            # TODO: sns for prior art download
+            # TODO: write recreatable content to a dynamodb table - but not here
+            # TODO: sns for prior art download - but not here
 
             status_code = 201
             headers["Location"] = generated_document_url.format(
