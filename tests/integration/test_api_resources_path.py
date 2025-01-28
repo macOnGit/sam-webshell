@@ -19,12 +19,13 @@ class TestDocumentsDir:
             f"{api_gateway_url}/documents",
             params={"template": "documents/blank_template_doc.docx"},
         )
-        assert response.status_code == 201
+        assert "OK" in response.json()
         # TODO: don't hardcode bucket, region, or key
         assert (
             response.headers["Location"]
             == "https://webshell-dev-generated-documents.s3.us-east-1.amazonaws.com/documents/test.docx"
         )
+        assert response.status_code == 201
 
     # def test_creates_new_doc_using_template(self):
     #     pass

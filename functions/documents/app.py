@@ -80,6 +80,10 @@ class UploadFailError(Exception):
     pass
 
 
+class TemplateRenderError(Exception):
+    pass
+
+
 def download_template(s3resource: S3Resource, *, key: str, filename: str):
     # key - name of key in source bucket
     # filename - path downloaded file
@@ -105,9 +109,19 @@ def upload_generated_document(
 
 
 def generate_document(documentpath: Path, templatepath: Path, *args, **kwargs):
-    docxtemplate = DocxTemplate(templatepath)
-    docxtemplate.render(kwargs.get("content", {}), jinja_env=kwargs.get("jinja_env"))
-    docxtemplate.save(documentpath)
+    content = kwargs.get("content", {})
+    try:
+        docxtemplate = DocxTemplate(templatepath)
+        docxtemplate.render(content, jinja_env=kwargs.get("jinja_env"))
+        docxtemplate.save(documentpath)
+        logger.info(f"Rendered {str(templatepath)} template with {json.dumps(content)}")
+    except Exception as e:
+        logger.error(e)
+        raise TemplateRenderError(
+            f"Failed to render error: {str(e)}"
+            f"template: {str(templatepath)}"
+            f"content: {json.dumps(content)}"
+        )
 
 
 def get_generated_document_key() -> str:
@@ -120,7 +134,8 @@ def lambda_handler(event: APIGatewayProxyEvent, context: LambdaContext):
 
     # TODO: seperate funcs for POST and GET
 
-    logger.info("###EVENT RECIEVED", event)
+    logger.info("###EVENT RECIEVED")
+    logger.info(json.dumps(event, indent=2))
 
     headers = {"Content-Type": "application/json"}
 
@@ -195,6 +210,10 @@ def lambda_handler(event: APIGatewayProxyEvent, context: LambdaContext):
         status_code = 500
 
     except UploadFailError as e:
+        body = str(e)
+        status_code = 500
+
+    except TemplateRenderError as e:
         body = str(e)
         status_code = 500
 

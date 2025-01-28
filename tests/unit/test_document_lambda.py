@@ -1,5 +1,5 @@
 import pytest
-from functions.documents.app import lambda_handler, S3Resource
+from functions.documents.app import lambda_handler, S3Resource, TemplateRenderError
 from botocore.exceptions import ClientError
 from pathlib import Path
 import json
@@ -116,6 +116,26 @@ def test_failed_upload_returns_500(
     response = lambda_handler(event=event, context=None)
     assert response["statusCode"] == 500
     assert "Failed to upload generated document" in response["body"]
+
+
+@pytest.mark.usefixtures("patched_s3_resource_generated_documents")
+@pytest.mark.parametrize("event", ["blank_template_doc"], indirect=True)
+def test_failed_render_returns_500(
+    patched_s3_resource_templates, event, monkeypatch, pytestconfig
+):
+    def mock_error(*args, **kwargs):
+        raise TemplateRenderError("render fail")
+
+    upload_to_s3_resource(
+        patched_s3_resource_templates,
+        pytestconfig.rootpath,
+        ["blank_template_doc"],
+        "documents",
+    )
+    monkeypatch.setattr("functions.documents.app.generate_document", mock_error)
+    response = lambda_handler(event=event, context=None)
+    assert response["statusCode"] == 500
+    assert "render fail" in response["body"]
 
 
 @pytest.mark.usefixtures("patched_s3_resource_generated_documents")
