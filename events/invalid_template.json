@@ -1,5 +1,5 @@
 {
-  "body": "",
+  "body": "{\"foo\":\"bar\"}",
   "resource": "/{proxy+}",
   "path": "/path/to/resource",
   "httpMethod": "POST",

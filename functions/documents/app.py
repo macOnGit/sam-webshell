@@ -16,7 +16,8 @@ INPUT_SCHEMA = {
     "title": "Document Content",
     "description": "Content for a document",
     "type": "object",
-    "required": ["queryStringParameters"],
+    # TODO: is body a string or object?
+    "required": ["queryStringParameters"],  # , "body"],
     "properties": {
         "queryStringParameters": {
             "description": "The template to base the document on",
@@ -28,7 +29,11 @@ INPUT_SCHEMA = {
                     "type": "string",
                 }
             },
-        }
+        },
+        # "body": {
+        #     "description": "The content for rendering the template",
+        #     "type": "object",
+        # },
     },
 }
 
@@ -118,8 +123,8 @@ def generate_document(documentpath: Path, templatepath: Path, *args, **kwargs):
     except Exception as e:
         logger.error(e)
         raise TemplateRenderError(
-            f"Failed to render error: {str(e)}"
-            f"template: {str(templatepath)}"
+            f"Failed to render error: {str(e)} "
+            f"template: {str(templatepath)} "
             f"content: {json.dumps(content)}"
         )
 
@@ -167,10 +172,14 @@ def lambda_handler(event: APIGatewayProxyEvent, context: LambdaContext):
             )
             # TODO: use tempfile
             upload_path = Path(f"/tmp/generated-{uuid.uuid4()}.docx")
+
+            # TODO: catch json error
+            content = json.loads(event["body"])
+
             generate_document(
                 documentpath=upload_path,
                 templatepath=download_path,
-                content=event["body"],
+                content=content,
             )
             generated_document_key = get_generated_document_key()
 

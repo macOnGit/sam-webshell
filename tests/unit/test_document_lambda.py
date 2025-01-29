@@ -192,7 +192,7 @@ def test_passed_in_content_appears_in_generated_document(
         ["general_amdt_doc"],
         "documents",
     )
-    event["body"] = {"docket_number": "ABC-123US01"}
+    event["body"] = json.dumps({"docket_number": "ABC-123US01"})
     response = lambda_handler(event=event, context=None)
     assert response["statusCode"] == 201
     text = get_text_from_generated_document(

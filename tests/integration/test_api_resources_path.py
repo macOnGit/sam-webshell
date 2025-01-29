@@ -18,6 +18,7 @@ class TestDocumentsDir:
         response = requests.post(
             f"{api_gateway_url}/documents",
             params={"template": "documents/blank_template_doc.docx"},
+            json={"docket_number": "foo"},
         )
         assert "OK" in response.json()
         # TODO: don't hardcode bucket, region, or key
