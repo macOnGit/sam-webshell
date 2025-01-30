@@ -74,6 +74,32 @@ def test_template_query_param_returns_400_bad_request(event: dict):
     assert "Failed schema validation" in response["body"]
 
 
+@pytest.mark.usefixtures(
+    "patched_s3_resource_generated_documents", "patched_s3_resource_templates"
+)
+@pytest.mark.parametrize("event", ["invalid_template"], indirect=True)
+def test_scheme_validation_fail_with_bad_json_body(event: dict):
+    event["body"] = "{\\}"
+    response = lambda_handler(event=event, context=None)
+    assert response["statusCode"] == 400
+    assert "Failed schema validation" in response["body"]
+
+
+@pytest.mark.usefixtures("patched_s3_resource_generated_documents")
+@pytest.mark.parametrize("event", ["blank_template_doc"], indirect=True)
+def test_ok_with_empty_object_body(patched_s3_resource_templates, event, pytestconfig):
+    upload_to_s3_resource(
+        patched_s3_resource_templates,
+        pytestconfig.rootpath,
+        ["blank_template_doc"],
+        "documents",
+    )
+    event["body"] = "{}"
+    response = lambda_handler(event=event, context=None)
+    assert "OK" in response["body"]
+    assert response["statusCode"] == 201
+
+
 @pytest.mark.parametrize("event", ["blank_template_doc"], indirect=True)
 def test_unset_template_bucket_name_env_returns_500_error(
     patched_s3_resource_templates, event
