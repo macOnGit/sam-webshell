@@ -5,7 +5,8 @@
   "httpMethod": "POST",
   "isBase64Encoded": true,
   "queryStringParameters": {
-    "template": "documents/blank_template_doc.docx"
+    "template": "documents/blank_template_doc.docx",
+    "documentKey":"documents/test.docx"
   },
   "multiValueQueryStringParameters": {
     "foo": [

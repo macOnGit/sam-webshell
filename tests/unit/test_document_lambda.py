@@ -53,6 +53,9 @@ def test_valid_POST_event_returns_200_and_location(
     assert "OK" in response["body"]
 
 
+# TODO: test invalid documentKey name
+
+
 @pytest.mark.usefixtures(
     "patched_s3_resource_generated_documents", "patched_s3_resource_templates"
 )
@@ -228,3 +231,7 @@ def test_passed_in_content_appears_in_generated_document(
         tmp_path=tmp_path,
     )
     assert "ABC-123US01" in text
+
+
+# TODO: get generated document key name from parameter store
+# See: https://docs.powertools.aws.dev/lambda/python/latest/utilities/parameters/

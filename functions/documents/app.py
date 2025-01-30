@@ -21,12 +21,16 @@ INPUT_SCHEMA = {
         "queryStringParameters": {
             "description": "The template to base the document on",
             "type": "object",
-            "required": ["template"],
+            "required": ["template", "documentKey"],
             "properties": {
                 "template": {
                     "$id": "#/properties/queryStringParameters/template",
                     "type": "string",
-                }
+                },
+                "documentKey": {
+                    "$id": "#/properties/queryStringParameters/documentKey",
+                    "type": "string",
+                },
             },
         },
         "body": {
@@ -129,12 +133,6 @@ def generate_document(documentpath: Path, templatepath: Path, *args, **kwargs):
         )
 
 
-def get_generated_document_key() -> str:
-    # TODO: get generated document key name from parameter store - but not here
-    # See: https://docs.powertools.aws.dev/lambda/python/latest/utilities/parameters/
-    return "documents/test.docx"
-
-
 def lambda_handler(event: APIGatewayProxyEvent, context: LambdaContext):
 
     # TODO: seperate funcs for POST and GET
@@ -177,8 +175,7 @@ def lambda_handler(event: APIGatewayProxyEvent, context: LambdaContext):
             generate_document(
                 documentpath=upload_path, templatepath=download_path, content=content
             )
-            generated_document_key = get_generated_document_key()
-
+            generated_document_key = event["queryStringParameters"]["documentKey"]
             upload_generated_document(
                 s3resource_generated_documents,
                 key=generated_document_key,

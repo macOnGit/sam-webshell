@@ -17,7 +17,10 @@ class TestDocumentsDir:
     def test_post_returns_201_and_location_header(self, api_gateway_url):
         response = requests.post(
             f"{api_gateway_url}/documents",
-            params={"template": "documents/blank_template_doc.docx"},
+            params={
+                "template": "documents/blank_template_doc.docx",
+                "documentKey": "documents/test.docx",
+            },
             json={"docket_number": "foo"},
         )
         assert "OK" in response.json()

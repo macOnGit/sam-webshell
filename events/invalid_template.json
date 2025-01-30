@@ -5,7 +5,8 @@
   "httpMethod": "POST",
   "isBase64Encoded": true,
   "queryStringParameters": {
-    "template": "documents/does_not_exist.docx"
+    "template": "documents/does_not_exist.docx",
+    "documentKey":"documents/test.docx"
   },
   "multiValueQueryStringParameters": {
     "foo": [
