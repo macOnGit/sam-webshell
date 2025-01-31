@@ -39,32 +39,16 @@ def generated_documents_bucket(stack_name, s3_resource):
 
 
 @pytest.fixture(scope="session")
-def blank_template_doc():
-    return base_path / "fixtures" / "blank_template_doc.docx"
-
-
-@pytest.fixture(scope="session")
-def general_amdt_doc():
-    return base_path / "fixtures" / "general_amdt_doc.docx"
-
-
-@pytest.fixture(scope="session")
-# TODO: use request param instead of blank_template_doc and general_amdt_doc
-def template_bucket_with_templates(
-    template_bucket, blank_template_doc, general_amdt_doc
-):
+def template_bucket_with_templates(template_bucket, request):
     prefix = "documents"
-    try:
-        template_bucket.upload_file(
-            blank_template_doc, f"{prefix}/blank_template_doc.docx"
-        )
-    except Exception as err:
-        print(str(err))
-
-    try:
-        template_bucket.upload_file(general_amdt_doc, f"{prefix}/general_amdt_doc.docx")
-    except Exception as err:
-        print(str(err))
+    doc_names = request.param
+    for doc_name in doc_names:
+        doc_path = base_path / "fixtures" / f"{doc_name}.docx"
+        try:
+            template_bucket.upload_file(f"{doc_path}", f"{prefix}/{doc_name}.docx")
+        except Exception as err:
+            print(str(err))
+    return doc_names
 
 
 @pytest.fixture(scope="session")

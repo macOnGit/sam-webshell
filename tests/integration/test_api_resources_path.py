@@ -4,12 +4,20 @@ import pytest
 
 class TestDocumentsDir:
 
-    @pytest.mark.usefixtures("template_bucket_with_templates")
-    def test_get_list_of_available_documents(self, api_gateway_url):
+    @pytest.mark.parametrize(
+        "template_bucket_with_templates",
+        [("blank_template_doc", "general_amdt_doc")],
+        indirect=True,
+    )
+    def test_get_list_of_available_documents(
+        self, api_gateway_url, template_bucket_with_templates
+    ):
         response = requests.get(f"{api_gateway_url}/documents")
 
         assert response.status_code == 200
-        assert len(response.json()) == 2, "Did not find two documents in bucket"
+        assert len(response.json()) == len(
+            template_bucket_with_templates
+        ), "Did not find documents in bucket"
 
     @pytest.mark.usefixtures(
         "template_bucket_with_templates", "generated_documents_bucket"
