@@ -10,6 +10,7 @@ from aws_lambda_powertools.utilities.data_classes import APIGatewayProxyEvent
 from aws_lambda_powertools.utilities.typing import LambdaContext
 from aws_lambda_powertools.utilities.validation import validate, SchemaValidationError
 
+# TODO: put into seperate file
 INPUT_SCHEMA = {
     "$schema": "https://json-schema.org/draft/2020-12/schema",
     "$id": "https://example.com/documents.schema.json",
@@ -158,16 +159,13 @@ def lambda_handler(event: APIGatewayProxyEvent, context: LambdaContext):
             if not s3resource_generated_documents.bucket_name:
                 raise EnvUnsetError("env GENERATED_DOCUMENTS_BUCKET_NAME unset")
 
-            generated_document_url = "https://{bucket}.s3.{region}.amazonaws.com/{key}"
             download_path = Path(f"/tmp/template-{uuid.uuid4()}.docx")
-
+            template_key = event["queryStringParameters"]["template"]
             download_template(
-                s3resource_templates,
-                key=event["queryStringParameters"]["template"],
-                filename=download_path,
+                s3resource_templates, key=template_key, filename=download_path
             )
-            upload_path = Path(f"/tmp/generated-{uuid.uuid4()}.docx")
 
+            upload_path = Path(f"/tmp/generated-{uuid.uuid4()}.docx")
             content = json.loads(event["body"])
             generate_document(
                 documentpath=upload_path, templatepath=download_path, content=content
@@ -179,12 +177,10 @@ def lambda_handler(event: APIGatewayProxyEvent, context: LambdaContext):
                 filename=upload_path,
             )
 
+            bucket = s3resource_generated_documents.bucket_name
+            key = generated_document_key
+            headers["Location"] = f"https://{bucket}.s3.{REGION}.amazonaws.com/{key}"
             status_code = 201
-            headers["Location"] = generated_document_url.format(
-                bucket=s3resource_generated_documents.bucket_name,
-                region=REGION,
-                key=generated_document_key,
-            )
             body = "OK"
 
         else:
