@@ -14,7 +14,10 @@ class TestDocumentsDir:
     @pytest.mark.usefixtures(
         "template_bucket_with_templates", "generated_documents_bucket"
     )
-    def test_post_returns_201_and_location_header(self, api_gateway_url):
+    def test_post_returns_201_and_location_header(
+        self, api_gateway_url, generated_documents_bucket_arn
+    ):
+        location_url = "https://{bucket}.s3.{region}.amazonaws.com/{key}"
         response = requests.post(
             f"{api_gateway_url}/documents",
             params={
@@ -24,13 +27,14 @@ class TestDocumentsDir:
             json={"docket_number": "foo"},
         )
         assert "OK" in response.json()
-        # TODO: don't hardcode bucket, region, or key
-        assert (
-            response.headers["Location"]
-            == "https://webshell-dev-generated-documents.s3.us-east-1.amazonaws.com/documents/test.docx"
+        assert response.headers["Location"] == location_url.format(
+            bucket=generated_documents_bucket_arn.split(":::")[1],
+            region="us-east-1",
+            key="documents/test.docx",
         )
         assert response.status_code == 201
 
+    # TODO:
     # def test_creates_new_doc_using_template(self):
     #     pass
 

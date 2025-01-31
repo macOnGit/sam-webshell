@@ -44,13 +44,13 @@ def test_valid_POST_event_returns_200_and_location(
     )
     location_url = "https://{bucket}.s3.{region}.amazonaws.com/{key}"
     response = lambda_handler(event=event, context=None)
+    assert "OK" in response["body"]
     assert response["statusCode"] == 201
     assert response["headers"]["Location"] == location_url.format(
         bucket=filenames.generated_documents_bucket_name,
         region="us-east-1",
         key="documents/test.docx",
     )
-    assert "OK" in response["body"]
 
 
 # TODO: test invalid documentKey name
@@ -235,3 +235,6 @@ def test_passed_in_content_appears_in_generated_document(
 
 # TODO: get generated document key name from parameter store
 # See: https://docs.powertools.aws.dev/lambda/python/latest/utilities/parameters/
+
+# TODO: write recreatable content to a dynamodb table
+# TODO: sns for prior art download

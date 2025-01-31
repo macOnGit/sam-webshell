@@ -146,7 +146,6 @@ def lambda_handler(event: APIGatewayProxyEvent, context: LambdaContext):
         global _S3_RESOURCE_TEMPLATES
         s3resource_templates = S3ResourceTemplates(_S3_RESOURCE_TEMPLATES)
         if not s3resource_templates.bucket_name:
-            # TODO: can this passed in via event?
             raise EnvUnsetError("env TEMPLATE_BUCKET_NAME unset")
 
         if event["httpMethod"] == "POST":
@@ -160,7 +159,6 @@ def lambda_handler(event: APIGatewayProxyEvent, context: LambdaContext):
                 raise EnvUnsetError("env GENERATED_DOCUMENTS_BUCKET_NAME unset")
 
             generated_document_url = "https://{bucket}.s3.{region}.amazonaws.com/{key}"
-            # TODO: use tempfile
             download_path = Path(f"/tmp/template-{uuid.uuid4()}.docx")
 
             download_template(
@@ -168,7 +166,6 @@ def lambda_handler(event: APIGatewayProxyEvent, context: LambdaContext):
                 key=event["queryStringParameters"]["template"],
                 filename=download_path,
             )
-            # TODO: use tempfile
             upload_path = Path(f"/tmp/generated-{uuid.uuid4()}.docx")
 
             content = json.loads(event["body"])
@@ -181,9 +178,6 @@ def lambda_handler(event: APIGatewayProxyEvent, context: LambdaContext):
                 key=generated_document_key,
                 filename=upload_path,
             )
-
-            # TODO: write recreatable content to a dynamodb table - but not here
-            # TODO: sns for prior art download - but not here
 
             status_code = 201
             headers["Location"] = generated_document_url.format(

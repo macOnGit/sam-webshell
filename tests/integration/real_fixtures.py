@@ -94,13 +94,19 @@ def stack_outputs(stack_name, cloudformation_client):
 @pytest.fixture()
 def api_gateway_url(stack_outputs):
     """Get the API Gateway URL from Cloudformation Stack outputs"""
-    api_outputs = [
-        output for output in stack_outputs if output["OutputKey"] == "RestApi"
-    ]
-
+    target = "RestApi"
+    api_outputs = [output for output in stack_outputs if output["OutputKey"] == target]
     if not api_outputs:
-        raise KeyError(f"RestAPI not found in stack")
+        raise KeyError(f"{target} not found in stack")
+    return api_outputs[0]["OutputValue"]  # Extract url from stack outputs
 
+
+@pytest.fixture
+def generated_documents_bucket_arn(stack_outputs):
+    target = "GeneratedDocumentsBucket"
+    api_outputs = [output for output in stack_outputs if output["OutputKey"] == target]
+    if not api_outputs:
+        raise KeyError(f"{target} not in stack")
     return api_outputs[0]["OutputValue"]  # Extract url from stack outputs
 
 
