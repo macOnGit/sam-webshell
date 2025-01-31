@@ -19,12 +19,11 @@ def upload_to_s3_resource(
         resource.bucket.upload_file(docx_file, f"{prefix}/{filename}.docx")
 
 
-def get_text_from_generated_document(s3resource, prefix, key, tmp_path):
+def get_text_from_generated_document(s3resource, key, tmp_path):
     # setup
-    filename = f"{prefix}/{key}"
     p = tmp_path / "generated.docx"
     # download_file_to_tempfile
-    s3resource.bucket.download_file(filename, p)
+    s3resource.bucket.download_file(key, p)
     # read_contents to stream
     document = Document(p)
     # return contents
@@ -226,8 +225,7 @@ def test_passed_in_content_appears_in_generated_document(
     assert response["statusCode"] == 201
     text = get_text_from_generated_document(
         s3resource=patched_s3_resource_generated_documents,
-        prefix="documents",
-        key="test.docx",
+        key="documents/test.docx",
         tmp_path=tmp_path,
     )
     assert "ABC-123US01" in text
