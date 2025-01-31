@@ -135,9 +135,6 @@ def generate_document(documentpath: Path, templatepath: Path, *args, **kwargs):
 
 
 def lambda_handler(event: APIGatewayProxyEvent, context: LambdaContext):
-
-    # TODO: seperate funcs for POST and GET
-
     logger.info("###EVENT RECIEVED")
     logger.info(json.dumps(event, indent=2))
 

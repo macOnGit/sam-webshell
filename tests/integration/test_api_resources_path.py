@@ -44,7 +44,7 @@ class TestDocumentsDir:
             f"{api_gateway_url}/documents",
             params={
                 "template": "documents/blank_template_doc.docx",
-                "documentKey": "documents/test.docx",
+                "documentKey": "documents/test document.docx",
             },
             json={"docket_number": "foo"},
         )
@@ -52,7 +52,7 @@ class TestDocumentsDir:
         assert response.headers["Location"] == location_url.format(
             bucket=generated_documents_bucket_arn.split(":::")[1],
             region="us-east-1",
-            key="documents/test.docx",
+            key="documents/test document.docx",
         )
         assert response.status_code == 201
 

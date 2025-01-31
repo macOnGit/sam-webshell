@@ -52,9 +52,6 @@ def test_valid_POST_event_returns_200_and_location(
     )
 
 
-# TODO: test invalid documentKey name
-
-
 @pytest.mark.usefixtures(
     "patched_s3_resource_generated_documents", "patched_s3_resource_templates"
 )
