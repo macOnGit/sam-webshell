@@ -15,15 +15,17 @@ class TestDocumentsDir:
         response = requests.get(f"{api_gateway_url}/documents")
 
         assert response.status_code == 200
-        assert len(response.json()) == len(
-            template_bucket_with_templates
-        ), "Did not find documents in bucket"
+        assert len(response.json()) == 2, "Did not find documents in bucket"
 
-    @pytest.mark.usefixtures(
-        "template_bucket_with_templates", "generated_documents_bucket"
+    @pytest.mark.parametrize(
+        "template_bucket_with_templates", [("blank_template_doc",)], indirect=True
     )
-    def test_post_returns_201_and_location_header(
-        self, api_gateway_url, generated_documents_bucket_arn
+    @pytest.mark.usefixtures("generated_documents_bucket")
+    def test_post_returns_201_ok_and_location_header(
+        self,
+        api_gateway_url,
+        generated_documents_bucket_arn,
+        template_bucket_with_templates,
     ):
         location_url = "https://{bucket}.s3.{region}.amazonaws.com/{key}"
         response = requests.post(
