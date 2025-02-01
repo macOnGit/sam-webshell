@@ -12,7 +12,7 @@ def patched_region(monkeypatch):
 
 
 def upload_to_s3_resource(
-    resource: S3Resource, base_path: Path, filenames: list, prefix: str
+    resource: S3Resource, base_path: Path, prefix: str, filenames: list
 ):
     for filename in filenames:
         docx_file = base_path / "fixtures" / f"{filename}.docx"
@@ -38,8 +38,8 @@ def test_valid_POST_event_returns_200_and_location(
     upload_to_s3_resource(
         patched_s3_resource_templates,
         pytestconfig.rootpath,
-        ["blank_template_doc"],
         "documents",
+        ["blank_template_doc"],
     )
     location_url = "https://{bucket}.s3.{region}.amazonaws.com/{key}"
     response = lambda_handler(event=event, context=None)
@@ -90,8 +90,8 @@ def test_ok_with_empty_object_body(patched_s3_resource_templates, event, pytestc
     upload_to_s3_resource(
         patched_s3_resource_templates,
         pytestconfig.rootpath,
-        ["blank_template_doc"],
         "documents",
+        ["blank_template_doc"],
     )
     event["body"] = "{}"
     response = lambda_handler(event=event, context=None)
@@ -134,8 +134,8 @@ def test_failed_upload_returns_500(
     upload_to_s3_resource(
         patched_s3_resource_templates,
         pytestconfig.rootpath,
-        ["blank_template_doc"],
         "documents",
+        ["blank_template_doc"],
     )
     patched_s3_resource_generated_documents.bucket.upload_file = mock_upload_file
     response = lambda_handler(event=event, context=None)
@@ -154,8 +154,8 @@ def test_failed_render_returns_500(
     upload_to_s3_resource(
         patched_s3_resource_templates,
         pytestconfig.rootpath,
-        ["blank_template_doc"],
         "documents",
+        ["blank_template_doc"],
     )
     monkeypatch.setattr("functions.documents.app.generate_document", mock_error)
     response = lambda_handler(event=event, context=None)
@@ -174,8 +174,8 @@ def test_useful_response_to_unhandled_exception(
     upload_to_s3_resource(
         patched_s3_resource_templates,
         pytestconfig.rootpath,
-        ["blank_template_doc"],
         "documents",
+        ["blank_template_doc"],
     )
     monkeypatch.setattr("functions.documents.app.generate_document", mock_error)
     response = lambda_handler(event=event, context=None)
@@ -190,8 +190,8 @@ def test_valid_GET_request_lists_available_templates(
     upload_to_s3_resource(
         patched_s3_resource_templates,
         pytestconfig.rootpath,
-        ["blank_template_doc"],
         "documents",
+        ["blank_template_doc"],
     )
     response = lambda_handler(event=event, context=None)
     assert response["statusCode"] == 200
@@ -210,12 +210,11 @@ def test_passed_in_content_appears_in_generated_document(
     pytestconfig,
     tmp_path,
 ):
-    # TODO: code smell
     upload_to_s3_resource(
         patched_s3_resource_templates,
         pytestconfig.rootpath,
-        ["general_amdt_doc"],
         "documents",
+        ["general_amdt_doc"],
     )
     event["body"] = json.dumps({"docket_number": "ABC-123US01"})
     response = lambda_handler(event=event, context=None)
