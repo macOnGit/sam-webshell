@@ -6,7 +6,9 @@
   "isBase64Encoded": true,
   "queryStringParameters": {
     "template": "documents/does_not_exist.docx",
-    "documentKey":"documents/test.docx"
+    "documentKey":"documents/test.docx",
+    "templateBucket": "Placeholder",
+    "outputBucket": "Placeholder"
   },
   "multiValueQueryStringParameters": {
     "foo": [

@@ -22,14 +22,23 @@ INPUT_SCHEMA = {
         "queryStringParameters": {
             "description": "The template to base the document on",
             "type": "object",
-            "required": ["template", "documentKey"],
+            "required": ["template", "documentKey", "templateBucket", "outputBucket"],
             "properties": {
+                # TODO: pass template in as path param
                 "template": {
                     "$id": "#/properties/queryStringParameters/template",
                     "type": "string",
                 },
                 "documentKey": {
                     "$id": "#/properties/queryStringParameters/documentKey",
+                    "type": "string",
+                },
+                "templateBucket": {
+                    "$id": "#/properties/queryStringParameters/templateBucket",
+                    "type": "string",
+                },
+                "outputBucket": {
+                    "$id": "#/properties/queryStringParameters/outputBucket",
                     "type": "string",
                 },
             },
@@ -42,15 +51,15 @@ INPUT_SCHEMA = {
     },
 }
 
-
+# TODO :code smell - maybe just pass bucket name to S3Resource class?
 _S3_RESOURCE_TEMPLATES = {
     "resource": resource("s3"),
-    "bucket_name": environ.get("TEMPLATE_BUCKET_NAME"),
+    "bucket_name": None,
 }
 
 _S3_RESOURCE_GENERATED_DOCUMENTS = {
     "resource": resource("s3"),
-    "bucket_name": environ.get("GENERATED_DOCUMENTS_BUCKET_NAME"),
+    "bucket_name": None,
 }
 
 REGION = environ.get("AWS_REGION")
@@ -82,10 +91,6 @@ class TemplateNotFoundError(Exception):
     pass
 
 
-class EnvUnsetError(Exception):
-    pass
-
-
 class UploadFailError(Exception):
     pass
 
@@ -102,7 +107,9 @@ def download_template(s3resource: S3Resource, *, key: str, filename: str):
         logger.info(f"template: {key} downloaded from {s3resource.bucket_name}")
     except ClientError as e:
         logger.error(e)
-        raise TemplateNotFoundError(f"Failed to get template: {key}")
+        raise TemplateNotFoundError(
+            f"Failed to get template: {key} from {s3resource.bucket_name}"
+        )
 
 
 def upload_generated_document(
@@ -112,10 +119,12 @@ def upload_generated_document(
     # filename - path of file to upload
     try:
         s3resource.bucket.upload_file(filename, key)
-        logger.info(f"{key} created in {s3resource.bucket_name} bucket as {key}")
+        logger.info(f"{key} created in {s3resource.bucket_name} bucket")
     except ClientError as e:
         logger.error(e)
-        raise UploadFailError(f"Failed to upload generated document: {key}")
+        raise UploadFailError(
+            f"Failed to upload generated document: {key} to {s3resource.bucket_name}"
+        )
 
 
 def generate_document(documentpath: Path, templatepath: Path, *args, **kwargs):
@@ -142,19 +151,22 @@ def lambda_handler(event: APIGatewayProxyEvent, context: LambdaContext):
 
     try:
         global _S3_RESOURCE_TEMPLATES
+        _S3_RESOURCE_TEMPLATES["bucket_name"] = event["queryStringParameters"][
+            "templateBucket"
+        ]
         s3resource_templates = S3ResourceTemplates(_S3_RESOURCE_TEMPLATES)
-        if not s3resource_templates.bucket_name:
-            raise EnvUnsetError("env TEMPLATE_BUCKET_NAME unset")
 
+        global _S3_RESOURCE_GENERATED_DOCUMENTS
+        _S3_RESOURCE_GENERATED_DOCUMENTS["bucket_name"] = event[
+            "queryStringParameters"
+        ]["outputBucket"]
+        s3resource_generated_documents = S3ResoureGeneratedDocuments(
+            _S3_RESOURCE_GENERATED_DOCUMENTS
+        )
+
+        # TODO: only accept post
         if event["httpMethod"] == "POST":
             validate(event=event, schema=INPUT_SCHEMA)
-
-            global _S3_RESOURCE_GENERATED_DOCUMENTS
-            s3resource_generated_documents = S3ResoureGeneratedDocuments(
-                _S3_RESOURCE_GENERATED_DOCUMENTS
-            )
-            if not s3resource_generated_documents.bucket_name:
-                raise EnvUnsetError("env GENERATED_DOCUMENTS_BUCKET_NAME unset")
 
             download_path = Path(f"/tmp/template-{uuid.uuid4()}.docx")
             template_key = event["queryStringParameters"]["template"]
@@ -181,6 +193,7 @@ def lambda_handler(event: APIGatewayProxyEvent, context: LambdaContext):
             body = "OK"
 
         else:
+            # TODO: move to func that returns just available resources
             keys = [obj.key for obj in s3resource_templates.bucket.objects.all()]
             status_code = 200
             body = keys
@@ -193,10 +206,6 @@ def lambda_handler(event: APIGatewayProxyEvent, context: LambdaContext):
         logger.error(e)
         body = str(e)
         status_code = 400
-
-    except EnvUnsetError as e:
-        body = str(e)
-        status_code = 500
 
     except UploadFailError as e:
         body = str(e)

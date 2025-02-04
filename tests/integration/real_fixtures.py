@@ -94,6 +94,16 @@ def generated_documents_bucket_arn(stack_outputs):
     return api_outputs[0]["OutputValue"]  # Extract url from stack outputs
 
 
+@pytest.fixture
+def templates_bucket_arn(stack_outputs):
+    # TODO: dupe, refactor
+    target = "TemplatesBucket"
+    api_outputs = [output for output in stack_outputs if output["OutputKey"] == target]
+    if not api_outputs:
+        raise KeyError(f"{target} not in stack")
+    return api_outputs[0]["OutputValue"]  # Extract url from stack outputs
+
+
 # usage: @pytest.mark.parametrize("event", ["apigw_event"], indirect=True)
 @pytest.fixture
 def event(request):

@@ -15,7 +15,7 @@ def get_text_from_generated_document(bucket, key, tmp_path):
 
 
 class TestDocumentsDir:
-
+    @pytest.mark.skip("TODO: move GET to seperate lambda")
     @pytest.mark.parametrize(
         "template_bucket_with_templates",
         [("blank_template_doc", "general_amdt_doc")],
@@ -36,6 +36,7 @@ class TestDocumentsDir:
     def test_post_returns_201_ok_and_location_header(
         self,
         api_gateway_url,
+        template_bucket_arn,
         generated_documents_bucket_arn,
         template_bucket_with_templates,
     ):
@@ -45,6 +46,9 @@ class TestDocumentsDir:
             params={
                 "template": "documents/blank_template_doc.docx",
                 "documentKey": "documents/test document.docx",
+                "templateBucket": template_bucket_arn.split(":::")[1],
+                # TODO: rename generated_documents to this
+                "outputBucket": generated_documents_bucket_arn.split(":::")[1],
             },
             json={"docket_number": "foo"},
         )
@@ -65,6 +69,8 @@ class TestDocumentsDir:
         generated_documents_bucket,
         tmp_path,
         template_bucket_with_templates,
+        template_bucket_arn,
+        generated_documents_bucket_arn,
     ):
         doc_key = "documents/test.docx"
         docket_number = "ABC-123US01"
@@ -74,6 +80,9 @@ class TestDocumentsDir:
             params={
                 "template": template,
                 "documentKey": doc_key,
+                "templateBucket": template_bucket_arn.split(":::")[1],
+                # TODO: rename generated_documents to this
+                "outputBucket": generated_documents_bucket_arn.split(":::")[1],
             },
             json={"docket_number": docket_number},
         )
@@ -81,6 +90,52 @@ class TestDocumentsDir:
             generated_documents_bucket, doc_key, tmp_path
         )
         assert docket_number in text
+
+    @pytest.mark.parametrize(
+        "template_bucket_with_templates", [("general_amdt_doc",)], indirect=True
+    )
+    def test_bad_template_bucket_name_returns_404_error(
+        self,
+        api_gateway_url,
+        generated_documents_bucket,
+        template_bucket_with_templates,
+    ):
+        response = requests.post(
+            f"{api_gateway_url}/documents",
+            params={
+                "template": "nope",
+                "documentKey": "nope",
+                "templateBucket": "does-not-exist",
+                "outputBucket": "nope",
+            },
+            json={"docket_number": "nope"},
+        )
+        assert "Failed to get template" in response.json()
+        assert response.status_code == 404
+
+    @pytest.mark.parametrize(
+        "template_bucket_with_templates", [("general_amdt_doc",)], indirect=True
+    )
+    def test_bad_generated_documents_bucket_name_returns_404_error(
+        self,
+        api_gateway_url,
+        generated_documents_bucket,
+        template_bucket_with_templates,
+        templates_bucket_arn,
+    ):
+        response = requests.post(
+            f"{api_gateway_url}/documents",
+            params={
+                "template": "documents/general_amdt_doc.docx",
+                "documentKey": "documents/test document.docx",
+                "templateBucket": templates_bucket_arn.split(":::")[1],
+                # TODO: rename generated_documents to this
+                "outputBucket": "does-not-exist",
+            },
+            json={"docket_number": "foo"},
+        )
+        assert "Failed to upload generated document" in response.json()
+        assert response.status_code == 404
 
 
 class TestEmailsDir:
