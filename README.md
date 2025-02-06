@@ -126,3 +126,16 @@ Next, you can use AWS Serverless Application Repository to deploy ready to use A
 (https://docs.aws.amazon.com/apigateway/latest/developerguide/api-gateway-request-validation-set-up.html)
 [powertools-validation]
 https://docs.powertools.aws.dev/lambda/python/latest/utilities/validation/#validate-function
+
+## Boto3 Error Exceptions
+
+- Boto3Error
+- DynamoDBNeedsConditionError
+- DynamoDBNeedsKeyConditionError
+- DynamoDBOperationNotSupportedError
+- DynanmoDBOperationNotSupportedError
+- ResourceNotExistsError
+- RetriesExceededError
+- S3TransferFailedError
+- S3UploadFailedError
+- UnknownAPIVersionError

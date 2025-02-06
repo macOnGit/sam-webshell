@@ -3,6 +3,7 @@ import logging
 import uuid
 from boto3 import resource
 from botocore.exceptions import ClientError
+from boto3.exceptions import S3UploadFailedError
 from os import environ
 from pathlib import Path
 from docxtpl import DocxTemplate
@@ -87,7 +88,7 @@ class S3ResourceTemplates(S3Resource):
     pass
 
 
-class TemplateNotFoundError(Exception):
+class DownloadFailError(Exception):
     pass
 
 
@@ -101,13 +102,14 @@ class TemplateRenderError(Exception):
 
 def download_template(s3resource: S3Resource, *, key: str, filename: str):
     # key - name of key in source bucket
-    # filename - path downloaded file
+    # filename - path for downloaded file
     try:
         s3resource.bucket.download_file(key, filename)
         logger.info(f"template: {key} downloaded from {s3resource.bucket_name}")
     except ClientError as e:
+        # TODO: specify 403 Forbidden or 404 not found
         logger.error(e)
-        raise TemplateNotFoundError(
+        raise DownloadFailError(
             f"Failed to get template: {key} from {s3resource.bucket_name}"
         )
 
@@ -120,7 +122,7 @@ def upload_generated_document(
     try:
         s3resource.bucket.upload_file(filename, key)
         logger.info(f"{key} created in {s3resource.bucket_name} bucket")
-    except ClientError as e:
+    except (ClientError, S3UploadFailedError) as e:
         logger.error(e)
         raise UploadFailError(
             f"Failed to upload generated document: {key} to {s3resource.bucket_name}"
@@ -151,6 +153,7 @@ def lambda_handler(event: APIGatewayProxyEvent, context: LambdaContext):
 
     try:
         global _S3_RESOURCE_TEMPLATES
+        # TODO: pass full arn of bucket and validate
         _S3_RESOURCE_TEMPLATES["bucket_name"] = event["queryStringParameters"][
             "templateBucket"
         ]
@@ -198,7 +201,8 @@ def lambda_handler(event: APIGatewayProxyEvent, context: LambdaContext):
             status_code = 200
             body = keys
 
-    except TemplateNotFoundError as e:
+    except DownloadFailError as e:
+        logger.error(e)
         body = str(e)
         status_code = 404
 
@@ -207,15 +211,13 @@ def lambda_handler(event: APIGatewayProxyEvent, context: LambdaContext):
         body = str(e)
         status_code = 400
 
-    except UploadFailError as e:
-        body = str(e)
-        status_code = 500
-
-    except TemplateRenderError as e:
+    except (UploadFailError, TemplateRenderError) as e:
+        logger.error(e)
         body = str(e)
         status_code = 500
 
     except Exception as e:
+        logger.error(e)
         body = "Unhandled Server Error: " + str(e)
         status_code = 500
 
