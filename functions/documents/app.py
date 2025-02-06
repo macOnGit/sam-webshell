@@ -18,18 +18,22 @@ INPUT_SCHEMA = {
     "title": "Document Content",
     "description": "Content for a document",
     "type": "object",
-    "required": ["queryStringParameters", "body"],
+    "required": ["queryStringParameters", "pathParameters", "body"],
     "properties": {
-        "queryStringParameters": {
-            "description": "The template to base the document on",
+        "pathParameters": {
             "type": "object",
-            "required": ["template", "documentKey", "templateBucket", "outputBucket"],
+            "required": ["template"],
             "properties": {
-                # TODO: pass template in as path param
                 "template": {
-                    "$id": "#/properties/queryStringParameters/template",
+                    "$id": "#/properties/pathParameters/template",
                     "type": "string",
                 },
+            },
+        },
+        "queryStringParameters": {
+            "type": "object",
+            "required": ["documentKey", "templateBucket", "outputBucket"],
+            "properties": {
                 "documentKey": {
                     "$id": "#/properties/queryStringParameters/documentKey",
                     "type": "string",
@@ -172,7 +176,7 @@ def lambda_handler(event: APIGatewayProxyEvent, context: LambdaContext):
             validate(event=event, schema=INPUT_SCHEMA)
 
             download_path = Path(f"/tmp/template-{uuid.uuid4()}.docx")
-            template_key = event["queryStringParameters"]["template"]
+            template_key = event["path"][1:] + "/" + event["pathParameters"]["template"]
             download_template(
                 s3resource_templates, key=template_key, filename=download_path
             )

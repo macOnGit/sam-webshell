@@ -70,6 +70,7 @@ class TestHappyPath:
         )
         event["body"] = json.dumps({"docket_number": "ABC-123US01"})
         response = lambda_handler(event=event, context=None)
+        assert "OK" in response["body"]
         assert response["statusCode"] == 201
         text = get_text_from_generated_document(
             s3resource=patched_s3_resource_generated_documents,
@@ -110,7 +111,7 @@ class TestClientErrors:
     )
     @pytest.mark.parametrize("event", ["invalid_template"], indirect=True)
     def test_template_query_param_returns_400_bad_request(self, event: dict):
-        del event["queryStringParameters"]["template"]
+        del event["pathParameters"]["template"]
         response = lambda_handler(event=event, context=None)
         assert "Failed schema validation" in response["body"]
         assert response["statusCode"] == 400

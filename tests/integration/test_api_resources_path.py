@@ -44,7 +44,7 @@ class TestDocumentsDir:
         response = requests.post(
             f"{api_gateway_url}/documents",
             params={
-                "template": "documents/blank_template_doc.docx",
+                "template": "blank_template_doc.docx",
                 "documentKey": "documents/test document.docx",
                 "templateBucket": templates_bucket_arn.split(":::")[1],
                 # TODO: rename generated_documents to this
@@ -74,7 +74,7 @@ class TestDocumentsDir:
     ):
         doc_key = "documents/test.docx"
         docket_number = "ABC-123US01"
-        template = "documents/general_amdt_doc.docx"
+        template = "general_amdt_doc.docx"
         requests.post(
             f"{api_gateway_url}/documents",
             params={
@@ -126,7 +126,7 @@ class TestDocumentsDir:
         response = requests.post(
             f"{api_gateway_url}/documents",
             params={
-                "template": "documents/general_amdt_doc.docx",
+                "template": "general_amdt_doc.docx",
                 "documentKey": "documents/test document.docx",
                 "templateBucket": templates_bucket_arn.split(":::")[1],
                 # TODO: rename generated_documents to this

@@ -5,7 +5,6 @@
   "httpMethod": "POST",
   "isBase64Encoded": true,
   "queryStringParameters": {
-    "template": "documents/does_not_exist.docx",
     "documentKey":"documents/test.docx",
     "templateBucket": "Placeholder",
     "outputBucket": "Placeholder"
@@ -16,7 +15,7 @@
     ]
   },
   "pathParameters": {
-    "proxy": "/path/to/resource"
+    "template": "documents/does_not_exist.docx"
   },
   "stageVariables": {
     "baz": "qux"
