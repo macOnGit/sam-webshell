@@ -36,7 +36,7 @@ class TestDocumentsDir:
     def test_post_returns_201_ok_and_location_header(
         self,
         api_gateway_url,
-        template_bucket_arn,
+        templates_bucket_arn,
         generated_documents_bucket_arn,
         template_bucket_with_templates,
     ):
@@ -46,7 +46,7 @@ class TestDocumentsDir:
             params={
                 "template": "documents/blank_template_doc.docx",
                 "documentKey": "documents/test document.docx",
-                "templateBucket": template_bucket_arn.split(":::")[1],
+                "templateBucket": templates_bucket_arn.split(":::")[1],
                 # TODO: rename generated_documents to this
                 "outputBucket": generated_documents_bucket_arn.split(":::")[1],
             },
@@ -69,7 +69,7 @@ class TestDocumentsDir:
         generated_documents_bucket,
         tmp_path,
         template_bucket_with_templates,
-        template_bucket_arn,
+        templates_bucket_arn,
         generated_documents_bucket_arn,
     ):
         doc_key = "documents/test.docx"
@@ -80,7 +80,7 @@ class TestDocumentsDir:
             params={
                 "template": template,
                 "documentKey": doc_key,
-                "templateBucket": template_bucket_arn.split(":::")[1],
+                "templateBucket": templates_bucket_arn.split(":::")[1],
                 # TODO: rename generated_documents to this
                 "outputBucket": generated_documents_bucket_arn.split(":::")[1],
             },
