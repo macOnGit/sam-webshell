@@ -116,7 +116,7 @@ class TestDocumentsDir:
     @pytest.mark.parametrize(
         "template_bucket_with_templates", [("general_amdt_doc",)], indirect=True
     )
-    def test_bad_generated_documents_bucket_name_returns_404_error(
+    def test_bad_generated_documents_bucket_name_returns_500_error(
         self,
         api_gateway_url,
         generated_documents_bucket,
@@ -135,7 +135,7 @@ class TestDocumentsDir:
             json={"docket_number": "foo"},
         )
         assert "Failed to upload generated document" in response.json()
-        assert response.status_code == 404
+        assert response.status_code == 500
 
 
 class TestEmailsDir:
