@@ -34,7 +34,7 @@ Resources:
         CreateDocument:
           Type: Api
           Properties:
-            Path: /documents
+            Path: /documents/{template}
             Method: post
 
   TemplatesBucket:

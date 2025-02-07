@@ -15,20 +15,6 @@ def get_text_from_generated_document(bucket, key, tmp_path):
 
 
 class TestDocumentsDir:
-    @pytest.mark.skip("TODO: move GET to seperate lambda")
-    @pytest.mark.parametrize(
-        "template_bucket_with_templates",
-        [("blank_template_doc", "general_amdt_doc")],
-        indirect=True,
-    )
-    def test_get_list_of_available_documents(
-        self, api_gateway_url, template_bucket_with_templates
-    ):
-        response = requests.get(f"{api_gateway_url}/documents")
-
-        assert response.status_code == 200
-        assert len(response.json()) == 2, "Did not find documents in bucket"
-
     @pytest.mark.parametrize(
         "template_bucket_with_templates", [("blank_template_doc",)], indirect=True
     )
@@ -41,10 +27,10 @@ class TestDocumentsDir:
         template_bucket_with_templates,
     ):
         location_url = "https://{bucket}.s3.{region}.amazonaws.com/{key}"
+        template = "blank_template_doc.docx"
         response = requests.post(
-            f"{api_gateway_url}/documents",
+            f"{api_gateway_url}/documents/{template}",
             params={
-                "template": "blank_template_doc.docx",
                 "documentKey": "documents/test document.docx",
                 "templateBucket": templates_bucket_arn.split(":::")[1],
                 # TODO: rename generated_documents to this
@@ -76,9 +62,8 @@ class TestDocumentsDir:
         docket_number = "ABC-123US01"
         template = "general_amdt_doc.docx"
         requests.post(
-            f"{api_gateway_url}/documents",
+            f"{api_gateway_url}/documents/{template}",
             params={
-                "template": template,
                 "documentKey": doc_key,
                 "templateBucket": templates_bucket_arn.split(":::")[1],
                 # TODO: rename generated_documents to this
@@ -101,9 +86,8 @@ class TestDocumentsDir:
         template_bucket_with_templates,
     ):
         response = requests.post(
-            f"{api_gateway_url}/documents",
+            f"{api_gateway_url}/documents/nope",
             params={
-                "template": "nope",
                 "documentKey": "nope",
                 "templateBucket": "does-not-exist",
                 "outputBucket": "nope",
@@ -123,10 +107,10 @@ class TestDocumentsDir:
         template_bucket_with_templates,
         templates_bucket_arn,
     ):
+        template = "general_amdt_doc.docx"
         response = requests.post(
-            f"{api_gateway_url}/documents",
+            f"{api_gateway_url}/documents/{template}",
             params={
-                "template": "general_amdt_doc.docx",
                 "documentKey": "documents/test document.docx",
                 "templateBucket": templates_bucket_arn.split(":::")[1],
                 # TODO: rename generated_documents to this
@@ -146,3 +130,18 @@ class TestEmailsDir:
 class TestQuestionnaires:
     # TODO
     pass
+
+
+# @pytest.mark.skip("TODO: move GET to seperate lambda")
+# @pytest.mark.parametrize(
+#     "template_bucket_with_templates",
+#     [("blank_template_doc", "general_amdt_doc")],
+#     indirect=True,
+# )
+# def test_get_list_of_available_documents(
+#     self, api_gateway_url, template_bucket_with_templates
+# ):
+#     response = requests.get(f"{api_gateway_url}/documents")
+
+#     assert response.status_code == 200
+#     assert len(response.json()) == 2, "Did not find documents in bucket"
