@@ -1,7 +1,7 @@
 {
   "body": "{\"foo\":\"bar\"}",
   "resource": "/{proxy+}",
-  "path": "/documents",
+  "path": "/documents/general_amdt_doc.docx",
   "httpMethod": "POST",
   "isBase64Encoded": true,
   "queryStringParameters": {

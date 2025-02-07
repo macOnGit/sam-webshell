@@ -176,7 +176,7 @@ def lambda_handler(event: APIGatewayProxyEvent, context: LambdaContext):
             validate(event=event, schema=INPUT_SCHEMA)
 
             download_path = Path(f"/tmp/template-{uuid.uuid4()}.docx")
-            template_key = event["path"][1:] + "/" + event["pathParameters"]["template"]
+            template_key = event["path"][1:]
             download_template(
                 s3resource_templates, key=template_key, filename=download_path
             )
