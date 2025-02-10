@@ -4,18 +4,40 @@ INPUT_SCHEMA = {
     "title": "Document Content",
     "description": "Content for a document",
     "type": "object",
-    "required": ["queryStringParameters"],
+    "required": ["queryStringParameters", "pathParameters", "body"],
     "properties": {
-        "queryStringParameters": {
-            "description": "The template to base the document on",
+        "pathParameters": {
             "type": "object",
             "required": ["template"],
             "properties": {
                 "template": {
-                    "$id": "#/properties/queryStringParameters/template",
+                    "$id": "#/properties/pathParameters/template",
                     "type": "string",
-                }
+                },
             },
-        }
+        },
+        "queryStringParameters": {
+            "type": "object",
+            "required": ["documentKey", "templateBucket", "outputBucket"],
+            "properties": {
+                "documentKey": {
+                    "$id": "#/properties/queryStringParameters/documentKey",
+                    "type": "string",
+                },
+                "templateBucket": {
+                    "$id": "#/properties/queryStringParameters/templateBucket",
+                    "type": "string",
+                },
+                "outputBucket": {
+                    "$id": "#/properties/queryStringParameters/outputBucket",
+                    "type": "string",
+                },
+            },
+        },
+        "body": {
+            "description": "Content for the template to render",
+            "type": "string",
+            "contentMediaType": "application/json",
+        },
     },
 }
