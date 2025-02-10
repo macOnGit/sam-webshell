@@ -120,12 +120,12 @@ See the [AWS SAM developer guide](https://docs.aws.amazon.com/serverless-applica
 
 Next, you can use AWS Serverless Application Repository to deploy ready to use Apps that go beyond hello world samples and learn how authors developed their applications: [AWS Serverless Application Repository main page](https://aws.amazon.com/serverless/serverlessrepo/)
 
-[apigw-method-request-validation]
-(https://docs.aws.amazon.com/apigateway/latest/developerguide/api-gateway-method-request-validation.html)
-[apigw-request-validation-set-up]
-(https://docs.aws.amazon.com/apigateway/latest/developerguide/api-gateway-request-validation-set-up.html)
-[powertools-validation]
-https://docs.powertools.aws.dev/lambda/python/latest/utilities/validation/#validate-function
+More Docs
+
+- [apigw-method-request-validation](https://docs.aws.amazon.com/apigateway/latest/developerguide/api-gateway-method-request-validation.html)
+- [apigw-request-validation-set-up](https://docs.aws.amazon.com/apigateway/latest/developerguide/api-gateway-request-validation-set-up.html)
+- [powertools-validation](https://docs.powertools.aws.dev/lambda/python/latest/utilities/validation/#validate-function)
+- [AWS SAM policy templates](https://docs.aws.amazon.com/serverless-application-model/latest/developerguide/serverless-policy-template-list.html)
 
 ## Boto3 Error Exceptions
 
