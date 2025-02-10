@@ -22,6 +22,8 @@ Resources:
         - AWSLambdaBasicExecutionRole
         - S3FullAccessPolicy:
             BucketName: !Ref GeneratedDocumentsBucket
+        - S3FullAccessPolicy:
+            BucketName: !Ref TemplatesBucket
       Events:
         GetDocuments:
           Type: Api
