@@ -12,19 +12,7 @@ from aws_lambda_powertools.utilities.typing import LambdaContext
 from aws_lambda_powertools.utilities.validation import validate, SchemaValidationError
 from .schemas import INPUT_SCHEMA
 
-# TODO :code smell - maybe just pass bucket name to S3Resource class?
-_S3_RESOURCE_TEMPLATES = {
-    "resource": resource("s3"),
-    "bucket_name": None,
-}
-
-_S3_RESOURCE_GENERATED_DOCUMENTS = {
-    "resource": resource("s3"),
-    "bucket_name": None,
-}
-
 REGION = environ.get("AWS_REGION")
-
 logger = logging.getLogger()
 logger.setLevel("INFO")
 
@@ -112,19 +100,18 @@ def lambda_handler(event: APIGatewayProxyEvent, context: LambdaContext):
     headers = {"Content-Type": "application/json"}
 
     try:
-        global _S3_RESOURCE_TEMPLATES
-        # TODO: pass full arn of bucket and validate
-        _S3_RESOURCE_TEMPLATES["bucket_name"] = event["queryStringParameters"][
-            "templateBucket"
-        ]
-        s3resource_templates = S3ResourceTemplates(_S3_RESOURCE_TEMPLATES)
-
-        global _S3_RESOURCE_GENERATED_DOCUMENTS
-        _S3_RESOURCE_GENERATED_DOCUMENTS["bucket_name"] = event[
-            "queryStringParameters"
-        ]["outputBucket"]
+        # TODO: validate and pass full arns of buckets
+        s3resource_templates = S3ResourceTemplates(
+            {
+                "resource": resource("s3"),
+                "bucket_name": event["queryStringParameters"]["templateBucket"],
+            }
+        )
         s3resource_generated_documents = S3ResoureGeneratedDocuments(
-            _S3_RESOURCE_GENERATED_DOCUMENTS
+            {
+                "resource": resource("s3"),
+                "bucket_name": event["queryStringParameters"]["outputBucket"],
+            }
         )
 
         # TODO: only accept post

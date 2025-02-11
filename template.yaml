@@ -14,10 +14,6 @@ Resources:
     Properties:
       CodeUri: functions/documents/
       Handler: app.lambda_file.lambda_handler
-      Environment:
-        Variables:
-          TEMPLATE_BUCKET_NAME: !Sub "${AWS::StackName}-templates"
-          GENERATED_DOCUMENTS_BUCKET_NAME: !Sub "${AWS::StackName}-generated-documents"
       Policies:
         - AWSLambdaBasicExecutionRole
         - S3FullAccessPolicy:
