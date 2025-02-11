@@ -13,7 +13,7 @@ Resources:
     Type: AWS::Serverless::Function
     Properties:
       CodeUri: functions/documents/
-      Handler: app.lambda_handler
+      Handler: app.lambda_file.lambda_handler
       Environment:
         Variables:
           TEMPLATE_BUCKET_NAME: !Sub "${AWS::StackName}-templates"

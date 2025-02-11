@@ -1,5 +1,9 @@
 import pytest
-from functions.documents.app import lambda_handler, S3Resource, TemplateRenderError
+from functions.documents.app.lambda_file import (
+    lambda_handler,
+    S3Resource,
+    TemplateRenderError,
+)
 from botocore.exceptions import ClientError
 from pathlib import Path
 import json
@@ -8,7 +12,7 @@ from docx import Document
 
 @pytest.fixture(autouse=True)
 def patched_region(monkeypatch):
-    monkeypatch.setattr("functions.documents.app.REGION", "us-east-1")
+    monkeypatch.setattr("functions.documents.app.lambda_file.REGION", "us-east-1")
 
 
 def upload_to_s3_resource(
@@ -164,7 +168,9 @@ class TestServerErrors:
             "documents",
             ["blank_template_doc"],
         )
-        monkeypatch.setattr("functions.documents.app.generate_document", mock_error)
+        monkeypatch.setattr(
+            "functions.documents.app.lambda_file.generate_document", mock_error
+        )
         response = lambda_handler(event=event, context=None)
         assert "render fail" in response["body"]
         assert response["statusCode"] == 500
@@ -183,7 +189,9 @@ class TestServerErrors:
             "documents",
             ["blank_template_doc"],
         )
-        monkeypatch.setattr("functions.documents.app.generate_document", mock_error)
+        monkeypatch.setattr(
+            "functions.documents.app.lambda_file.generate_document", mock_error
+        )
         response = lambda_handler(event=event, context=None)
         assert "Something broke" in response["body"]
         assert response["statusCode"] == 500

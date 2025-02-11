@@ -2,7 +2,10 @@ import os
 import pytest
 import boto3
 from moto import mock_aws
-from functions.documents.app import S3ResourceTemplates, S3ResoureGeneratedDocuments
+from functions.documents.app.lambda_file import (
+    S3ResourceTemplates,
+    S3ResoureGeneratedDocuments,
+)
 
 
 @pytest.fixture(scope="function")
@@ -66,7 +69,7 @@ def patched_s3_resource_generated_documents(
     monkeypatch, mock_s3_resource_generated_documents
 ):
     monkeypatch.setattr(
-        "functions.documents.app.S3ResoureGeneratedDocuments",
+        "functions.documents.app.lambda_file.S3ResoureGeneratedDocuments",
         lambda _: mock_s3_resource_generated_documents,
     )
     return mock_s3_resource_generated_documents
@@ -75,7 +78,7 @@ def patched_s3_resource_generated_documents(
 @pytest.fixture
 def patched_s3_resource_templates(monkeypatch, mock_s3_resource_templates):
     monkeypatch.setattr(
-        "functions.documents.app.S3ResourceTemplates",
+        "functions.documents.app.lambda_file.S3ResourceTemplates",
         lambda _: mock_s3_resource_templates,
     )
     return mock_s3_resource_templates
