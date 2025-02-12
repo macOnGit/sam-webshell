@@ -36,7 +36,11 @@ class S3ResourceTemplates(S3Resource):
     pass
 
 
-class DownloadFailError(Exception):
+class DownloadFailTemplateError(Exception):
+    pass
+
+
+class DownloadFailBucketError(Exception):
     pass
 
 
@@ -55,11 +59,18 @@ def download_template(s3resource: S3Resource, *, key: str, filename: str):
         s3resource.bucket.download_file(key, filename)
         logger.info(f"template: {key} downloaded from {s3resource.bucket_name}")
     except ClientError as e:
-        # TODO: specify 403 Forbidden or 404 not found
-        logger.error(e)
-        raise DownloadFailError(
-            f"Failed to get template: {key} from {s3resource.bucket_name}"
-        )
+        if e.response["Error"]["Code"] == "404":
+            raise DownloadFailTemplateError(
+                f"Failed to get template: {key} from {s3resource.bucket_name}. "
+                "Please verify template name and its existance."
+            )
+        elif e.response["Error"]["Code"] == "NoSuchBucket":
+            raise DownloadFailBucketError(
+                f"Failed to get template: {key} from {s3resource.bucket_name}. "
+                "Please verify bucket name and access to it."
+            )
+        else:
+            raise e
 
 
 def upload_generated_document(
@@ -71,7 +82,6 @@ def upload_generated_document(
         s3resource.bucket.upload_file(filename, key)
         logger.info(f"{key} created in {s3resource.bucket_name} bucket")
     except (ClientError, S3UploadFailedError) as e:
-        logger.error(e)
         raise UploadFailError(
             f"Failed to upload generated document: {key} to {s3resource.bucket_name}"
         )
@@ -85,7 +95,6 @@ def generate_document(documentpath: Path, templatepath: Path, *args, **kwargs):
         docxtemplate.save(documentpath)
         logger.info(f"Rendered {str(templatepath)} template with {json.dumps(content)}")
     except Exception as e:
-        logger.error(e)
         raise TemplateRenderError(
             f"Failed to render error: {str(e)} "
             f"template: {str(templatepath)} "
@@ -148,10 +157,15 @@ def lambda_handler(event: APIGatewayProxyEvent, context: LambdaContext):
             status_code = 200
             body = keys
 
-    except DownloadFailError as e:
+    except DownloadFailTemplateError as e:
         logger.error(e)
         body = str(e)
         status_code = 404
+
+    except DownloadFailBucketError as e:
+        logger.error(e)
+        body = str(e)
+        status_code = 403
 
     except SchemaValidationError as e:
         logger.error(e)

@@ -79,7 +79,7 @@ class TestDocumentsDir:
     @pytest.mark.parametrize(
         "template_bucket_with_templates", [("general_amdt_doc",)], indirect=True
     )
-    def test_bad_template_bucket_name_returns_404_error(
+    def test_bad_template_bucket_name_returns_403_error(
         self,
         api_gateway_url,
         generated_documents_bucket,
@@ -88,6 +88,7 @@ class TestDocumentsDir:
         response = requests.post(
             f"{api_gateway_url}/documents/nope",
             params={
+                # TODO: rename outDocumentKey
                 "documentKey": "nope",
                 "templateBucket": "does-not-exist",
                 "outputBucket": "nope",
@@ -95,7 +96,29 @@ class TestDocumentsDir:
             json={"docket_number": "nope"},
         )
         assert "Failed to get template" in response.json()
-        assert response.status_code == 404
+        assert response.status_code == 403
+
+    @pytest.mark.parametrize(
+        "template_bucket_with_templates", [("general_amdt_doc",)], indirect=True
+    )
+    def test_bad_template_name_returns_404_error(
+        self,
+        api_gateway_url,
+        generated_documents_bucket,
+        template_bucket_with_templates,
+        templates_bucket_arn,
+    ):
+        response = requests.post(
+            f"{api_gateway_url}/documents/does-not-exist",
+            params={
+                "documentKey": "nope",
+                "templateBucket": templates_bucket_arn.split(":::")[1],
+                "outputBucket": "nope",
+            },
+            json={"docket_number": "nope"},
+        )
+        assert "Failed to get template" in response.json()
+        assert response.status_code == 403
 
     @pytest.mark.parametrize(
         "template_bucket_with_templates", [("general_amdt_doc",)], indirect=True

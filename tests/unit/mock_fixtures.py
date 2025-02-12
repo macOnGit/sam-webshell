@@ -48,7 +48,22 @@ def mock_generated_documents_bucket(filenames, mock_s3_client) -> str:
 @pytest.fixture
 def mock_s3_resource_templates(mock_templates_bucket, mock_s3_resource):
     return S3ResourceTemplates(
-        {"resource": mock_s3_resource, "bucket_name": mock_templates_bucket}
+        {
+            "resource": mock_s3_resource,
+            "bucket_name": mock_templates_bucket,
+        }
+    )
+
+
+@pytest.fixture
+def mock_s3_resource_templates_with_wrong_bucket_name(
+    mock_templates_bucket, mock_s3_resource
+):
+    return S3ResourceTemplates(
+        {
+            "resource": mock_s3_resource,
+            "bucket_name": "wrong-name",
+        }
     )
 
 
@@ -82,3 +97,14 @@ def patched_s3_resource_templates(monkeypatch, mock_s3_resource_templates):
         lambda _: mock_s3_resource_templates,
     )
     return mock_s3_resource_templates
+
+
+@pytest.fixture
+def patched_s3_resource_templates_with_wrong_bucket_name(
+    monkeypatch, mock_s3_resource_templates_with_wrong_bucket_name
+):
+    monkeypatch.setattr(
+        "functions.documents.app.lambda_file.S3ResourceTemplates",
+        lambda _: mock_s3_resource_templates_with_wrong_bucket_name,
+    )
+    return mock_s3_resource_templates_with_wrong_bucket_name

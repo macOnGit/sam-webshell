@@ -105,16 +105,26 @@ class TestClientErrors:
         "patched_s3_resource_generated_documents", "patched_s3_resource_templates"
     )
     @pytest.mark.parametrize("event", ["invalid_template"], indirect=True)
-    def test_invalid_template_returns_404_template_not_found(self, event):
+    def test_invalid_template_returns_404_not_found(self, event):
         response = lambda_handler(event=event, context=None)
         assert "Failed to get template" in response["body"]
         assert response["statusCode"] == 404
 
     @pytest.mark.usefixtures(
+        "patched_s3_resource_generated_documents",
+        "patched_s3_resource_templates_with_wrong_bucket_name",
+    )
+    @pytest.mark.parametrize("event", ["invalid_template"], indirect=True)
+    def test_invalid_template_bucket_returns_403_forbidden(self, event):
+        response = lambda_handler(event=event, context=None)
+        assert "Failed to get template" in response["body"]
+        assert response["statusCode"] == 403
+
+    @pytest.mark.usefixtures(
         "patched_s3_resource_generated_documents", "patched_s3_resource_templates"
     )
     @pytest.mark.parametrize("event", ["invalid_template"], indirect=True)
-    def test_template_query_param_returns_400_bad_request(self, event: dict):
+    def test_missing_template_query_param_returns_400_bad_request(self, event: dict):
         del event["pathParameters"]["template"]
         response = lambda_handler(event=event, context=None)
         assert "Failed schema validation" in response["body"]
