@@ -96,7 +96,7 @@ class TestDocumentsDir:
             json={"docket_number": "nope"},
         )
         assert "Failed to get template" in response.json()
-        assert response.status_code == 403
+        assert response.status_code == 403, "Did not return 403"
 
     @pytest.mark.parametrize(
         "template_bucket_with_templates", [("general_amdt_doc",)], indirect=True
@@ -118,7 +118,7 @@ class TestDocumentsDir:
             json={"docket_number": "nope"},
         )
         assert "Failed to get template" in response.json()
-        assert response.status_code == 403
+        assert response.status_code == 404, "Did not return 404"
 
     @pytest.mark.parametrize(
         "template_bucket_with_templates", [("general_amdt_doc",)], indirect=True
