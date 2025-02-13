@@ -59,15 +59,16 @@ def download_template(s3resource: S3Resource, *, key: str, filename: str):
         s3resource.bucket.download_file(key, filename)
         logger.info(f"template: {key} downloaded from {s3resource.bucket_name}")
     except ClientError as e:
-        if e.response["Error"]["Code"] == "404":
+        error_code = e.response["Error"]["Code"]
+        if error_code == "404":
             raise DownloadFailTemplateError(
                 f"Failed to get template: {key} from {s3resource.bucket_name}. "
                 "Please verify template name and its existance."
             )
-        elif e.response["Error"]["Code"] == "NoSuchBucket":
+        elif (error_code == "NoSuchBucket") or (error_code == "403"):
             raise DownloadFailBucketError(
                 f"Failed to get template: {key} from {s3resource.bucket_name}. "
-                "Please verify bucket name and access to it."
+                "Please verify bucket name and your access to it."
             )
         else:
             raise e
@@ -178,7 +179,7 @@ def lambda_handler(event: APIGatewayProxyEvent, context: LambdaContext):
         status_code = 500
 
     except Exception as e:
-        logger.error(e)
+        logger.error(e, exc_info=True)
         body = "Unhandled Server Error: " + str(e)
         status_code = 500
 
