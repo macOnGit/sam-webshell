@@ -140,6 +140,13 @@ class TestClientErrors:
         assert "Failed schema validation" in response["body"]
         assert response["statusCode"] == 400
 
+    @pytest.mark.parametrize("event", ["list_docs"], indirect=True)
+    def test_GET_request_is_not_allowed(self, event):
+        response = lambda_handler(event=event, context=None)
+        assert "GET method is not supported on this endpoint" in response["body"]
+        assert response["headers"]["Allow"] == "POST"
+        assert response["statusCode"] == 405
+
 
 class TestServerErrors:
     @pytest.mark.parametrize("event", ["blank_template_doc"], indirect=True)
@@ -225,6 +232,8 @@ def test_valid_GET_request_lists_available_templates(
     ), "Did not find document in bucket"
     assert response["statusCode"] == 200
 
+
+# TODO: thin out events, removing unneeded attrs
 
 # TODO: get generated document key name from parameter store
 # See: https://docs.powertools.aws.dev/lambda/python/latest/utilities/parameters/

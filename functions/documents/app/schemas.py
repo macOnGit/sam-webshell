@@ -4,8 +4,13 @@ INPUT_SCHEMA = {
     "title": "Document Content",
     "description": "Content for a document",
     "type": "object",
-    "required": ["queryStringParameters", "pathParameters", "body"],
+    "required": ["httpMethod", "pathParameters", "queryStringParameters", "body"],
     "properties": {
+        "httpMethod": {
+            "description": "Endpoint only accepts POST method",
+            "type": "string",
+            "pattern": "POST",
+        },
         "pathParameters": {
             "type": "object",
             "required": ["template"],

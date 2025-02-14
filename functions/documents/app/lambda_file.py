@@ -110,58 +110,47 @@ def lambda_handler(event: APIGatewayProxyEvent, context: LambdaContext):
     headers = {"Content-Type": "application/json"}
 
     try:
-        # TODO: only accept post
-        if event["httpMethod"] == "POST":
+        validate(event=event, schema=INPUT_SCHEMA)
 
-            validate(event=event, schema=INPUT_SCHEMA)
+        template_bucket = event["queryStringParameters"]["templateBucket"].split(":::")[
+            1
+        ]
+        output_bucket = event["queryStringParameters"]["outputBucket"].split(":::")[1]
+        s3resource_templates = S3ResourceTemplates(
+            {
+                "resource": resource("s3"),
+                "bucket_name": template_bucket,
+            }
+        )
+        s3resource_generated_documents = S3ResoureGeneratedDocuments(
+            {
+                "resource": resource("s3"),
+                "bucket_name": output_bucket,
+            }
+        )
+        download_path = Path(f"/tmp/template-{uuid.uuid4()}.docx")
+        template_key = event["path"][1:]
+        download_template(
+            s3resource_templates, key=template_key, filename=download_path
+        )
 
-            template_bucket = event["queryStringParameters"]["templateBucket"].split(
-                ":::"
-            )[1]
-            output_bucket = event["queryStringParameters"]["outputBucket"].split(":::")[
-                1
-            ]
-            s3resource_templates = S3ResourceTemplates(
-                {
-                    "resource": resource("s3"),
-                    "bucket_name": template_bucket,
-                }
-            )
-            s3resource_generated_documents = S3ResoureGeneratedDocuments(
-                {
-                    "resource": resource("s3"),
-                    "bucket_name": output_bucket,
-                }
-            )
-            download_path = Path(f"/tmp/template-{uuid.uuid4()}.docx")
-            template_key = event["path"][1:]
-            download_template(
-                s3resource_templates, key=template_key, filename=download_path
-            )
+        upload_path = Path(f"/tmp/generated-{uuid.uuid4()}.docx")
+        content = json.loads(event["body"])
+        generate_document(
+            documentpath=upload_path, templatepath=download_path, content=content
+        )
+        generated_document_key = event["queryStringParameters"]["documentKey"]
+        upload_generated_document(
+            s3resource_generated_documents,
+            key=generated_document_key,
+            filename=upload_path,
+        )
 
-            upload_path = Path(f"/tmp/generated-{uuid.uuid4()}.docx")
-            content = json.loads(event["body"])
-            generate_document(
-                documentpath=upload_path, templatepath=download_path, content=content
-            )
-            generated_document_key = event["queryStringParameters"]["documentKey"]
-            upload_generated_document(
-                s3resource_generated_documents,
-                key=generated_document_key,
-                filename=upload_path,
-            )
-
-            bucket = s3resource_generated_documents.bucket_name
-            key = generated_document_key
-            headers["Location"] = f"https://{bucket}.s3.{REGION}.amazonaws.com/{key}"
-            status_code = 201
-            body = "OK"
-
-        else:
-            # TODO: move to func that returns just available resources
-            keys = [obj.key for obj in s3resource_templates.bucket.objects.all()]
-            status_code = 200
-            body = keys
+        bucket = s3resource_generated_documents.bucket_name
+        key = generated_document_key
+        headers["Location"] = f"https://{bucket}.s3.{REGION}.amazonaws.com/{key}"
+        status_code = 201
+        body = "OK"
 
     except DownloadFailTemplateError as e:
         logger.error(e)
@@ -175,8 +164,13 @@ def lambda_handler(event: APIGatewayProxyEvent, context: LambdaContext):
 
     except SchemaValidationError as e:
         logger.error(e)
-        body = str(e)
-        status_code = 400
+        if "httpMethod must match pattern POST" in e.message:
+            body = "GET method is not supported on this endpoint"
+            headers["Allow"] = "POST"
+            status_code = 405
+        else:
+            body = str(e)
+            status_code = 400
 
     except (UploadFailError, TemplateRenderError) as e:
         logger.error(e)
@@ -194,3 +188,9 @@ def lambda_handler(event: APIGatewayProxyEvent, context: LambdaContext):
             "headers": headers,
             "body": json.dumps(body),
         }
+
+
+# # TODO: move to func that returns just available resources
+# keys = [obj.key for obj in s3resource_templates.bucket.objects.all()]
+# status_code = 200
+# body = keys
