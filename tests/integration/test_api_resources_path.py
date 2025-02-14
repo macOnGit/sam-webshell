@@ -36,7 +36,7 @@ class TestDocumentsDir:
                 # TODO: rename generated_documents to this
                 "outputBucket": generated_documents_bucket_arn,
             },
-            json={"docket_number": "foo"},
+            json={"docket_number": "not-checked"},
         )
         assert "OK" in response.json()
         assert response.headers["Location"] == location_url.format(
@@ -90,10 +90,10 @@ class TestDocumentsDir:
             params={
                 # TODO: rename outDocumentKey
                 "documentKey": "nope",
-                "templateBucket": "does-not-exist",
-                "outputBucket": "nope",
+                "templateBucket": "arn:aws:s3:::does-not-exist",
+                "outputBucket": "arn:aws:s3:::not-checked",
             },
-            json={"docket_number": "nope"},
+            json={"docket_number": "not-checked"},
         )
         assert "Failed to get template" in response.json()
         assert response.status_code == 403, "Did not return 403"
@@ -111,9 +111,9 @@ class TestDocumentsDir:
         response = requests.post(
             f"{api_gateway_url}/documents/does-not-exist",
             params={
-                "documentKey": "nope",
+                "documentKey": "arn:aws:s3:::not-checked",
                 "templateBucket": templates_bucket_arn,
-                "outputBucket": "nope",
+                "outputBucket": "arn:aws:s3:::not-checked",
             },
             json={"docket_number": "nope"},
         )
@@ -137,9 +137,9 @@ class TestDocumentsDir:
                 "documentKey": "documents/test document.docx",
                 "templateBucket": templates_bucket_arn,
                 # TODO: rename generated_documents to this
-                "outputBucket": "does-not-exist",
+                "outputBucket": "arn:aws:s3:::does-not-exist",
             },
-            json={"docket_number": "foo"},
+            json={"docket_number": "not-checked"},
         )
         assert "Failed to upload generated document" in response.json()
         assert response.status_code == 500
