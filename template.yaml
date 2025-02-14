@@ -24,7 +24,7 @@ Resources:
         GetDocuments:
           Type: Api
           Properties:
-            Path: /documents
+            Path: /documents/{proxy+}
             Method: get
         CreateDocument:
           Type: Api
