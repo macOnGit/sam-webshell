@@ -163,14 +163,8 @@ def lambda_handler(event: APIGatewayProxyEvent, context: LambdaContext):
         status_code = 403
 
     except SchemaValidationError as e:
-        logger.error(e)
-        if "httpMethod must match pattern POST" in e.message:
-            body = "GET method is not supported on this endpoint"
-            headers["Allow"] = "POST"
-            status_code = 405
-        else:
-            body = str(e)
-            status_code = 400
+        body = str(e)
+        status_code = 400
 
     except (UploadFailError, TemplateRenderError) as e:
         logger.error(e)

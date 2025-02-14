@@ -21,11 +21,6 @@ Resources:
         - S3FullAccessPolicy:
             BucketName: !Ref TemplatesBucket
       Events:
-        GetDocuments:
-          Type: Api
-          Properties:
-            Path: /documents/{proxy+}
-            Method: get
         CreateDocument:
           Type: Api
           Properties:

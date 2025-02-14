@@ -144,12 +144,6 @@ class TestDocumentsDir:
         assert "Failed to upload generated document" in response.json()
         assert response.status_code == 500
 
-    def test_GET_request_is_not_allowed(self, api_gateway_url):
-        response = requests.get(f"{api_gateway_url}/documents/not-checked")
-        assert "GET method is not supported on this endpoint" in response.json()
-        assert response.headers["Allow"] == "POST"
-        assert response.status_code == 405
-
 
 # @pytest.mark.skip("TODO: move GET to seperate lambda")
 # @pytest.mark.parametrize(
