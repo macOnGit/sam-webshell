@@ -6,8 +6,8 @@
   "isBase64Encoded": true,
   "queryStringParameters": {
     "documentKey":"documents/test.docx",
-    "templateBucket": "Placeholder",
-    "outputBucket": "Placeholder"
+    "templateBucket": "arn:aws:s3:::webshell-dev-templates",
+    "outputBucket": "arn:aws:s3:::webshell-dev-generated-documents"
   },
   "multiValueQueryStringParameters": {
     "foo": [

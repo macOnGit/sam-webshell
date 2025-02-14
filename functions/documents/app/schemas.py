@@ -27,10 +27,12 @@ INPUT_SCHEMA = {
                 "templateBucket": {
                     "$id": "#/properties/queryStringParameters/templateBucket",
                     "type": "string",
+                    "pattern": "(?<=arn:aws:s3:::)[ a-zA-Z0-9!_.*'()-]+",
                 },
                 "outputBucket": {
                     "$id": "#/properties/queryStringParameters/outputBucket",
                     "type": "string",
+                    "pattern": "(?<=arn:aws:s3:::)[ a-zA-Z0-9!_.*'()-]+",
                 },
             },
         },

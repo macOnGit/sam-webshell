@@ -27,12 +27,12 @@ class S3Resource:
 
 
 class S3ResoureGeneratedDocuments(S3Resource):
-    # seperate classes for patching
+    # separate classes for patching
     pass
 
 
 class S3ResourceTemplates(S3Resource):
-    # seperate classes for patching
+    # separate classes for patching
     pass
 
 
@@ -110,24 +110,29 @@ def lambda_handler(event: APIGatewayProxyEvent, context: LambdaContext):
     headers = {"Content-Type": "application/json"}
 
     try:
-        # TODO: validate and pass full arns of buckets
-        s3resource_templates = S3ResourceTemplates(
-            {
-                "resource": resource("s3"),
-                "bucket_name": event["queryStringParameters"]["templateBucket"],
-            }
-        )
-        s3resource_generated_documents = S3ResoureGeneratedDocuments(
-            {
-                "resource": resource("s3"),
-                "bucket_name": event["queryStringParameters"]["outputBucket"],
-            }
-        )
-
         # TODO: only accept post
         if event["httpMethod"] == "POST":
+
             validate(event=event, schema=INPUT_SCHEMA)
 
+            template_bucket = event["queryStringParameters"]["templateBucket"].split(
+                ":::"
+            )[1]
+            output_bucket = event["queryStringParameters"]["outputBucket"].split(":::")[
+                1
+            ]
+            s3resource_templates = S3ResourceTemplates(
+                {
+                    "resource": resource("s3"),
+                    "bucket_name": template_bucket,
+                }
+            )
+            s3resource_generated_documents = S3ResoureGeneratedDocuments(
+                {
+                    "resource": resource("s3"),
+                    "bucket_name": output_bucket,
+                }
+            )
             download_path = Path(f"/tmp/template-{uuid.uuid4()}.docx")
             template_key = event["path"][1:]
             download_template(

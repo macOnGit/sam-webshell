@@ -32,15 +32,15 @@ class TestDocumentsDir:
             f"{api_gateway_url}/documents/{template}",
             params={
                 "documentKey": "documents/test document.docx",
-                "templateBucket": templates_bucket_arn.split(":::")[1],
+                "templateBucket": templates_bucket_arn,
                 # TODO: rename generated_documents to this
-                "outputBucket": generated_documents_bucket_arn.split(":::")[1],
+                "outputBucket": generated_documents_bucket_arn,
             },
             json={"docket_number": "foo"},
         )
         assert "OK" in response.json()
         assert response.headers["Location"] == location_url.format(
-            bucket=generated_documents_bucket_arn.split(":::")[1],
+            bucket=generated_documents_bucket_arn,
             region="us-east-1",
             key="documents/test document.docx",
         )
@@ -65,9 +65,9 @@ class TestDocumentsDir:
             f"{api_gateway_url}/documents/{template}",
             params={
                 "documentKey": doc_key,
-                "templateBucket": templates_bucket_arn.split(":::")[1],
+                "templateBucket": templates_bucket_arn,
                 # TODO: rename generated_documents to this
-                "outputBucket": generated_documents_bucket_arn.split(":::")[1],
+                "outputBucket": generated_documents_bucket_arn,
             },
             json={"docket_number": docket_number},
         )
@@ -112,7 +112,7 @@ class TestDocumentsDir:
             f"{api_gateway_url}/documents/does-not-exist",
             params={
                 "documentKey": "nope",
-                "templateBucket": templates_bucket_arn.split(":::")[1],
+                "templateBucket": templates_bucket_arn,
                 "outputBucket": "nope",
             },
             json={"docket_number": "nope"},
@@ -135,7 +135,7 @@ class TestDocumentsDir:
             f"{api_gateway_url}/documents/{template}",
             params={
                 "documentKey": "documents/test document.docx",
-                "templateBucket": templates_bucket_arn.split(":::")[1],
+                "templateBucket": templates_bucket_arn,
                 # TODO: rename generated_documents to this
                 "outputBucket": "does-not-exist",
             },
@@ -143,16 +143,6 @@ class TestDocumentsDir:
         )
         assert "Failed to upload generated document" in response.json()
         assert response.status_code == 500
-
-
-class TestEmailsDir:
-    # TODO
-    pass
-
-
-class TestQuestionnaires:
-    # TODO
-    pass
 
 
 # @pytest.mark.skip("TODO: move GET to seperate lambda")
