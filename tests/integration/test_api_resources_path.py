@@ -40,7 +40,7 @@ class TestDocumentsDir:
         )
         assert "OK" in response.json()
         assert response.headers["Location"] == location_url.format(
-            bucket=generated_documents_bucket_arn,
+            bucket=generated_documents_bucket_arn.split(":::")[1],
             region="us-east-1",
             key="documents/test document.docx",
         )
