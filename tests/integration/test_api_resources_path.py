@@ -18,12 +18,12 @@ class TestDocumentsDir:
     @pytest.mark.parametrize(
         "template_bucket_with_templates", [("blank_template_doc",)], indirect=True
     )
-    @pytest.mark.usefixtures("generated_documents_bucket")
+    @pytest.mark.usefixtures("output_bucket")
     def test_post_returns_201_ok_and_location_header(
         self,
         api_gateway_url,
         templates_bucket_arn,
-        generated_documents_bucket_arn,
+        output_bucket_arn,
         template_bucket_with_templates,
     ):
         location_url = "https://{bucket}.s3.{region}.amazonaws.com/{key}"
@@ -33,14 +33,13 @@ class TestDocumentsDir:
             params={
                 "documentKey": "documents/test document.docx",
                 "templateBucket": templates_bucket_arn,
-                # TODO: rename generated_documents to this
-                "outputBucket": generated_documents_bucket_arn,
+                "outputBucket": output_bucket_arn,
             },
             json={"docket_number": "not-checked"},
         )
         assert "OK" in response.json()
         assert response.headers["Location"] == location_url.format(
-            bucket=generated_documents_bucket_arn.split(":::")[1],
+            bucket=output_bucket_arn.split(":::")[1],
             region="us-east-1",
             key="documents/test document.docx",
         )
@@ -52,11 +51,11 @@ class TestDocumentsDir:
     def test_creates_new_doc_using_template_and_content(
         self,
         api_gateway_url,
-        generated_documents_bucket,
+        output_bucket,
         tmp_path,
         template_bucket_with_templates,
         templates_bucket_arn,
-        generated_documents_bucket_arn,
+        output_bucket_arn,
     ):
         doc_key = "documents/test.docx"
         docket_number = "ABC-123US01"
@@ -66,14 +65,11 @@ class TestDocumentsDir:
             params={
                 "documentKey": doc_key,
                 "templateBucket": templates_bucket_arn,
-                # TODO: rename generated_documents to this
-                "outputBucket": generated_documents_bucket_arn,
+                "outputBucket": output_bucket_arn,
             },
             json={"docket_number": docket_number},
         )
-        text = get_text_from_generated_document(
-            generated_documents_bucket, doc_key, tmp_path
-        )
+        text = get_text_from_generated_document(output_bucket, doc_key, tmp_path)
         assert docket_number in text
 
     @pytest.mark.parametrize(
@@ -82,13 +78,12 @@ class TestDocumentsDir:
     def test_bad_template_bucket_name_returns_403_error(
         self,
         api_gateway_url,
-        generated_documents_bucket,
+        output_bucket,
         template_bucket_with_templates,
     ):
         response = requests.post(
             f"{api_gateway_url}/documents/nope",
             params={
-                # TODO: rename outDocumentKey
                 "documentKey": "nope",
                 "templateBucket": "arn:aws:s3:::does-not-exist",
                 "outputBucket": "arn:aws:s3:::not-checked",
@@ -104,7 +99,7 @@ class TestDocumentsDir:
     def test_bad_template_name_returns_404_error(
         self,
         api_gateway_url,
-        generated_documents_bucket,
+        output_bucket,
         template_bucket_with_templates,
         templates_bucket_arn,
     ):
@@ -123,10 +118,10 @@ class TestDocumentsDir:
     @pytest.mark.parametrize(
         "template_bucket_with_templates", [("general_amdt_doc",)], indirect=True
     )
-    def test_bad_generated_documents_bucket_name_returns_500_error(
+    def test_bad_output_bucket_name_returns_500_error(
         self,
         api_gateway_url,
-        generated_documents_bucket,
+        output_bucket,
         template_bucket_with_templates,
         templates_bucket_arn,
     ):
@@ -136,7 +131,6 @@ class TestDocumentsDir:
             params={
                 "documentKey": "documents/test document.docx",
                 "templateBucket": templates_bucket_arn,
-                # TODO: rename generated_documents to this
                 "outputBucket": "arn:aws:s3:::does-not-exist",
             },
             json={"docket_number": "not-checked"},

@@ -17,7 +17,7 @@ Resources:
       Policies:
         - AWSLambdaBasicExecutionRole
         - S3FullAccessPolicy:
-            BucketName: !Ref GeneratedDocumentsBucket
+            BucketName: !Ref OutputBucket
         - S3FullAccessPolicy:
             BucketName: !Ref TemplatesBucket
       Events:
@@ -32,10 +32,10 @@ Resources:
     Properties:
       BucketName: !Sub "${AWS::StackName}-templates"
 
-  GeneratedDocumentsBucket:
+  OutputBucket:
     Type: AWS::S3::Bucket
     Properties:
-      BucketName: !Sub "${AWS::StackName}-generated-documents"
+      BucketName: !Sub "${AWS::StackName}-output"
 
 Outputs:
   RestApi:
@@ -50,6 +50,6 @@ Outputs:
   TemplatesBucket:
     Description: Bucket for template documents and emails
     Value: !GetAtt  TemplatesBucket.Arn
-  GeneratedDocumentsBucket:
+  OutputBucket:
     Description: Bucket for generated documents and emails
-    Value: !GetAtt  GeneratedDocumentsBucket.Arn
+    Value: !GetAtt  OutputBucket.Arn

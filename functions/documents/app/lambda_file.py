@@ -26,7 +26,7 @@ class S3Resource:
         self.bucket = self.resource.Bucket(self.bucket_name)
 
 
-class S3ResoureGeneratedDocuments(S3Resource):
+class S3ResoureOutput(S3Resource):
     # separate classes for patching
     pass
 
@@ -122,7 +122,7 @@ def lambda_handler(event: APIGatewayProxyEvent, context: LambdaContext):
                 "bucket_name": template_bucket,
             }
         )
-        s3resource_generated_documents = S3ResoureGeneratedDocuments(
+        s3resource_output = S3ResoureOutput(
             {
                 "resource": resource("s3"),
                 "bucket_name": output_bucket,
@@ -141,12 +141,12 @@ def lambda_handler(event: APIGatewayProxyEvent, context: LambdaContext):
         )
         generated_document_key = event["queryStringParameters"]["documentKey"]
         upload_generated_document(
-            s3resource_generated_documents,
+            s3resource_output,
             key=generated_document_key,
             filename=upload_path,
         )
 
-        bucket = s3resource_generated_documents.bucket_name
+        bucket = s3resource_output.bucket_name
         key = generated_document_key
         headers["Location"] = f"https://{bucket}.s3.{REGION}.amazonaws.com/{key}"
         status_code = 201

@@ -4,7 +4,7 @@ import boto3
 from moto import mock_aws
 from functions.documents.app.lambda_file import (
     S3ResourceTemplates,
-    S3ResoureGeneratedDocuments,
+    S3ResoureOutput,
 )
 
 
@@ -40,9 +40,9 @@ def mock_templates_bucket(filenames, mock_s3_client) -> str:
 
 
 @pytest.fixture
-def mock_generated_documents_bucket(filenames, mock_s3_client) -> str:
-    mock_s3_client.create_bucket(Bucket=filenames.generated_documents_bucket_name)
-    return filenames.generated_documents_bucket_name
+def mock_output_bucket(filenames, mock_s3_client) -> str:
+    mock_s3_client.create_bucket(Bucket=filenames.output_bucket_name)
+    return filenames.output_bucket_name
 
 
 @pytest.fixture
@@ -68,26 +68,22 @@ def mock_s3_resource_templates_with_wrong_bucket_name(
 
 
 @pytest.fixture
-def mock_s3_resource_generated_documents(
-    mock_generated_documents_bucket, mock_s3_resource
-):
-    return S3ResoureGeneratedDocuments(
+def mock_s3_resource_output(mock_output_bucket, mock_s3_resource):
+    return S3ResoureOutput(
         {
             "resource": mock_s3_resource,
-            "bucket_name": mock_generated_documents_bucket,
+            "bucket_name": mock_output_bucket,
         }
     )
 
 
 @pytest.fixture
-def patched_s3_resource_generated_documents(
-    monkeypatch, mock_s3_resource_generated_documents
-):
+def patched_s3_resource_output(monkeypatch, mock_s3_resource_output):
     monkeypatch.setattr(
-        "functions.documents.app.lambda_file.S3ResoureGeneratedDocuments",
-        lambda _: mock_s3_resource_generated_documents,
+        "functions.documents.app.lambda_file.S3ResoureOutput",
+        lambda _: mock_s3_resource_output,
     )
-    return mock_s3_resource_generated_documents
+    return mock_s3_resource_output
 
 
 @pytest.fixture

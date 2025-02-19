@@ -7,7 +7,7 @@
   "queryStringParameters": {
     "documentKey":"documents/test.docx",
     "templateBucket": "arn:aws:s3:::webshell-dev-templates",
-    "outputBucket": "arn:aws:s3:::webshell-dev-generated-documents"
+    "outputBucket": "arn:aws:s3:::webshell-dev-output"
   },
   "multiValueQueryStringParameters": {
     "foo": [

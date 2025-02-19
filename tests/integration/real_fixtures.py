@@ -31,8 +31,8 @@ def template_bucket(stack_name, s3_resource):
 
 
 @pytest.fixture(scope="session")
-def generated_documents_bucket(stack_name, s3_resource):
-    bucket = s3_resource.Bucket(name=f"{stack_name}-generated-documents")
+def output_bucket(stack_name, s3_resource):
+    bucket = s3_resource.Bucket(name=f"{stack_name}-output")
     yield bucket
     for key in bucket.objects.all():
         key.delete()
@@ -86,8 +86,8 @@ def api_gateway_url(stack_outputs):
 
 
 @pytest.fixture
-def generated_documents_bucket_arn(stack_outputs):
-    target = "GeneratedDocumentsBucket"
+def output_bucket_arn(stack_outputs):
+    target = "OutputBucket"
     api_outputs = [output for output in stack_outputs if output["OutputKey"] == target]
     if not api_outputs:
         raise KeyError(f"{target} not in stack")
