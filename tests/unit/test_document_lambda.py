@@ -226,8 +226,6 @@ def test_valid_GET_request_lists_available_templates(
     assert response["statusCode"] == 200
 
 
-# TODO: thin out events, removing unneeded attrs
-
 # TODO: get generated document key name from parameter store
 # See: https://docs.powertools.aws.dev/lambda/python/latest/utilities/parameters/
 
