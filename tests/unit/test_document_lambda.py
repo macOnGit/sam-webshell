@@ -228,6 +228,5 @@ def test_valid_GET_request_lists_available_templates(
 
 # TODO: get generated document key name from parameter store
 # See: https://docs.powertools.aws.dev/lambda/python/latest/utilities/parameters/
-
 # TODO: write recreatable content to a dynamodb table
 # TODO: sns for prior art download

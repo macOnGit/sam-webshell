@@ -9,6 +9,13 @@ from functions.documents.app.schemas import INPUT_SCHEMA
 base_path = Path(__file__).parents[2]
 
 
+def get_target_from_stack_outputs(stack_outputs, target):
+    api_outputs = [output for output in stack_outputs if output["OutputKey"] == target]
+    if not api_outputs:
+        raise KeyError(f"{target} not found in stack")
+    return api_outputs[0]["OutputValue"]  # Extract url from stack outputs
+
+
 @pytest.fixture
 def s3_client():
     return boto3.client("s3")
@@ -80,30 +87,21 @@ def stack_outputs(stack_name, cloudformation_client):
 @pytest.fixture()
 def api_gateway_url(stack_outputs):
     """Get the API Gateway URL from Cloudformation Stack outputs"""
-    target = "RestApi"
-    api_outputs = [output for output in stack_outputs if output["OutputKey"] == target]
-    if not api_outputs:
-        raise KeyError(f"{target} not found in stack")
-    return api_outputs[0]["OutputValue"]  # Extract url from stack outputs
+    return get_target_from_stack_outputs(stack_outputs=stack_outputs, target="RestApi")
 
 
 @pytest.fixture
 def output_bucket_arn(stack_outputs):
-    target = "OutputBucket"
-    api_outputs = [output for output in stack_outputs if output["OutputKey"] == target]
-    if not api_outputs:
-        raise KeyError(f"{target} not in stack")
-    return api_outputs[0]["OutputValue"]  # Extract url from stack outputs
+    return get_target_from_stack_outputs(
+        stack_outputs=stack_outputs, target="OutputBucket"
+    )
 
 
 @pytest.fixture
 def templates_bucket_arn(stack_outputs):
-    # TODO: dupe, refactor
-    target = "TemplatesBucket"
-    api_outputs = [output for output in stack_outputs if output["OutputKey"] == target]
-    if not api_outputs:
-        raise KeyError(f"{target} not in stack")
-    return api_outputs[0]["OutputValue"]  # Extract url from stack outputs
+    return get_target_from_stack_outputs(
+        stack_outputs=stack_outputs, target="TemplatesBucket"
+    )
 
 
 @pytest.fixture
