@@ -104,7 +104,6 @@ def templates_bucket_arn(stack_outputs):
     return api_outputs[0]["OutputValue"]  # Extract url from stack outputs
 
 
-# usage: @pytest.mark.parametrize("event", ["apigw_event"], indirect=True)
 @pytest.fixture
 def event(request):
     # TODO: validate event scheme
