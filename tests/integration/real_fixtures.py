@@ -3,6 +3,8 @@ from pathlib import Path
 import os
 import pytest
 import boto3
+from aws_lambda_powertools.utilities.validation import validate
+from functions.documents.app.schemas import INPUT_SCHEMA
 
 base_path = Path(__file__).parents[2]
 
@@ -106,10 +108,9 @@ def templates_bucket_arn(stack_outputs):
 
 @pytest.fixture
 def event(request):
-    # TODO: validate event scheme
-    # from aws_lambda_powertools.utilities.validation import validate
     filename = request.param
     json_file = base_path / "events" / f"{filename}.json"
     with json_file.open() as fp:
         fixture = json.load(fp)
-    return fixture
+        validate(event=fixture, schema=INPUT_SCHEMA)
+        return fixture
