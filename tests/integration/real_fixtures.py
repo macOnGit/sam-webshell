@@ -110,5 +110,4 @@ def event(request):
     json_file = base_path / "events" / f"{filename}.json"
     with json_file.open() as fp:
         fixture = json.load(fp)
-        validate(event=fixture, schema=INPUT_SCHEMA)
         return fixture

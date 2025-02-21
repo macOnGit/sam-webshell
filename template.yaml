@@ -1,12 +1,17 @@
 AWSTemplateFormatVersion: '2010-09-09'
 Transform: AWS::Serverless-2016-10-31
 Description: SAM Template for sam-webshell
+# TODO: use HttpAPI not API
 
 Globals:
   Function:
     Timeout: 10
     MemorySize: 128
     Runtime: python3.11
+    EventInvokeConfig:
+      MaximumRetryAttempts: 2
+    LoggingConfig:
+      LogFormat: JSON
 
 Resources:
   DocumentsFunction:
@@ -14,6 +19,8 @@ Resources:
     Properties:
       CodeUri: functions/documents/
       Handler: app.lambda_file.lambda_handler
+      LoggingConfig:
+        LogGroup: /aws/lambda/sam-webshell-DocumentsFunction
       Policies:
         - AWSLambdaBasicExecutionRole
         - S3FullAccessPolicy:
@@ -26,6 +33,29 @@ Resources:
           Properties:
             Path: /documents/{template}
             Method: post
+  AppResourcesFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      CodeUri: functions/app_resources/
+      Handler: app.lambda_file.lambda_handler
+      LoggingConfig:
+        LogGroup: /aws/lambda/sam-webshell-AppResourcesFunction
+      Environment:
+        Variables:
+          TEMPLATES_BUCKET: !Ref TemplatesBucket
+          OUTPUT_BUCKET: !Ref OutputBucket
+      Policies:
+        - AWSLambdaBasicExecutionRole
+        - S3FullAccessPolicy:
+            BucketName: !Ref OutputBucket
+        - S3FullAccessPolicy:
+            BucketName: !Ref TemplatesBucket
+      Events:
+        CreateDocument:
+          Type: Api
+          Properties:
+            Path: /resources
+            Method: get
 
   TemplatesBucket:
     Type: AWS::S3::Bucket

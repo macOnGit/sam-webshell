@@ -1,5 +1,7 @@
 import pytest
 from functions.documents.app.lambda_file import (
+    # TODO: for testing use fixture?
+    # https://docs.pytest.org/en/stable/explanation/fixtures.html
     lambda_handler,
     S3Resource,
     TemplateRenderError,
@@ -205,25 +207,6 @@ class TestServerErrors:
         response = lambda_handler(event=event, context=None)
         assert "Something broke" in response["body"]
         assert response["statusCode"] == 500
-
-
-@pytest.mark.skip("TODO: move GET to seperate lambda")
-@pytest.mark.parametrize("event", ["list_docs"], indirect=True)
-def test_valid_GET_request_lists_available_templates(
-    patched_s3_resource_templates, event, pytestconfig
-):
-    upload_to_s3_resource(
-        patched_s3_resource_templates,
-        pytestconfig.rootpath,
-        "documents",
-        ["blank_template_doc"],
-    )
-    response = lambda_handler(event=event, context=None)
-    assert len(json.loads(response["body"])) == 1
-    assert (
-        "documents/blank_template_doc.docx" in response["body"]
-    ), "Did not find document in bucket"
-    assert response["statusCode"] == 200
 
 
 # TODO: get generated document key name from parameter store

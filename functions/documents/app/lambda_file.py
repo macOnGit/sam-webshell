@@ -182,9 +182,3 @@ def lambda_handler(event: APIGatewayProxyEvent, context: LambdaContext):
             "headers": headers,
             "body": json.dumps(body),
         }
-
-
-# # TODO: move to func that returns just available resources
-# keys = [obj.key for obj in s3resource_templates.bucket.objects.all()]
-# status_code = 200
-# body = keys

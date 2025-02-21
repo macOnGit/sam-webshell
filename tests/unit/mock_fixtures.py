@@ -83,6 +83,10 @@ def patched_s3_resource_output(monkeypatch, mock_s3_resource_output):
         "functions.documents.app.lambda_file.S3ResoureOutput",
         lambda _: mock_s3_resource_output,
     )
+    monkeypatch.setattr(
+        "functions.app_resources.app.lambda_file.S3ResoureOutput",
+        lambda _: mock_s3_resource_output,
+    )
     return mock_s3_resource_output
 
 
@@ -90,6 +94,10 @@ def patched_s3_resource_output(monkeypatch, mock_s3_resource_output):
 def patched_s3_resource_templates(monkeypatch, mock_s3_resource_templates):
     monkeypatch.setattr(
         "functions.documents.app.lambda_file.S3ResourceTemplates",
+        lambda _: mock_s3_resource_templates,
+    )
+    monkeypatch.setattr(
+        "functions.app_resources.app.lambda_file.S3ResourceTemplates",
         lambda _: mock_s3_resource_templates,
     )
     return mock_s3_resource_templates
