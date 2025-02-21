@@ -70,7 +70,9 @@ def lambda_handler(event: APIGatewayProxyEvent, context: LambdaContext):
         templates = [obj.key for obj in s3resource_templates.bucket.objects.all()]
         documents = [obj.key for obj in s3resource_output.bucket.objects.all()]
         body = {
+            # TODO: rename template_buckets
             "templates": [{"bucket_name": template_bucket, "templates": templates}],
+            # TODO: rename output_buckets
             "output": [{"bucket_name": output_bucket, "documents": documents}],
         }
         status_code = 200

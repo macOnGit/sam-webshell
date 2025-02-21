@@ -13,6 +13,7 @@ class TestHappyPath:
     ):
         response = requests.get(f"{api_gateway_url}/resources")
         assert (
-            "documents/blank_template_doc.docx" in response.json()
+            "documents/blank_template_doc.docx"
+            in response.json()["templates"][0]["templates"]
         ), "Did not find document in bucket"
         assert response.status_code == 200
