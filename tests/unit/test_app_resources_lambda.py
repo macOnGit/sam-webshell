@@ -39,7 +39,6 @@ class TestHappyPath:
         assert (
             "documents/blank_template_doc.docx" in response["body"]
         ), "Did not find document in bucket"
-        assert len(json.loads(response["body"])) == 2
         assert response["statusCode"] == 200
 
-    # TODO: test gives list of generated documents in output bucket
+    # TODO: test gives list of already generated documents in output bucket

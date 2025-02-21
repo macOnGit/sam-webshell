@@ -14,6 +14,7 @@ def get_text_from_generated_document(bucket, key, tmp_path):
     return document.paragraphs[0].text
 
 
+# TODO: rename to match other tests
 class TestDocumentsDir:
     @pytest.mark.parametrize(
         "template_bucket_with_templates", [("blank_template_doc",)], indirect=True
@@ -137,18 +138,3 @@ class TestDocumentsDir:
         )
         assert "Failed to upload generated document" in response.json()
         assert response.status_code == 500
-
-
-# @pytest.mark.skip("TODO: move GET to seperate lambda")
-# @pytest.mark.parametrize(
-#     "template_bucket_with_templates",
-#     [("blank_template_doc", "general_amdt_doc")],
-#     indirect=True,
-# )
-# def test_get_list_of_available_documents(
-#     self, api_gateway_url, template_bucket_with_templates
-# ):
-#     response = requests.get(f"{api_gateway_url}/documents")
-
-#     assert response.status_code == 200
-#     assert len(response.json()) == 2, "Did not find documents in bucket"
