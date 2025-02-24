@@ -112,3 +112,17 @@ def patched_s3_resource_templates_with_wrong_bucket_name(
         lambda _: mock_s3_resource_templates_with_wrong_bucket_name,
     )
     return mock_s3_resource_templates_with_wrong_bucket_name
+
+
+@pytest.fixture
+def mock_template_bucket_with_templates(
+    patched_s3_resource_templates, request, pytestconfig
+):
+    prefix = "documents"
+    base_path = pytestconfig.rootpath
+    filenames = request.param
+    for filename in filenames:
+        docx_file = base_path / "fixtures" / f"{filename}.docx"
+        patched_s3_resource_templates.bucket.upload_file(
+            docx_file, f"{prefix}/{filename}.docx"
+        )
