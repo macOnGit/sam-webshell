@@ -14,8 +14,7 @@ def get_text_from_generated_document(bucket, key, tmp_path):
     return document.paragraphs[0].text
 
 
-# TODO: rename to match other tests
-class TestDocumentsDir:
+class TestHappyPath:
     @pytest.mark.parametrize(
         "template_bucket_with_templates", [("blank_template_doc",)], indirect=True
     )
@@ -73,6 +72,8 @@ class TestDocumentsDir:
         text = get_text_from_generated_document(output_bucket, doc_key, tmp_path)
         assert docket_number in text
 
+
+class TestClientErrors:
     @pytest.mark.parametrize(
         "template_bucket_with_templates", [("general_amdt_doc",)], indirect=True
     )
