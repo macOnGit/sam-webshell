@@ -16,8 +16,8 @@ def upload_to_s3_resource(
         resource.bucket.upload_file(docx_file, f"{prefix}/{filename}.docx")
 
 
+@pytest.mark.parametrize("event", ["list_docs"], indirect=True)
 class TestHappyPath:
-    @pytest.mark.parametrize("event", ["list_docs"], indirect=True)
     def test_valid_GET_request_lists_available_templates(
         self,
         patched_s3_resource_templates,
@@ -42,6 +42,30 @@ class TestHappyPath:
         ), "Did not find document in bucket"
         assert response["statusCode"] == 200
 
+    def test_valid_GET_request_lists_generated_documents(
+        self,
+        patched_s3_resource_templates,
+        patched_s3_resource_output,
+        event,
+        pytestconfig,
+        monkeypatch,
+    ):
+        monkeypatch.setenv("TEMPLATES_BUCKET", "doesnt-matter")
+        monkeypatch.setenv("OUTPUT_BUCKET", "doesnt-matter")
+        upload_to_s3_resource(
+            patched_s3_resource_output,
+            pytestconfig.rootpath,
+            "documents",
+            ["blank_template_doc"],
+        )
+        response = lambda_handler(event=event, context=None)
+        json_response = json.loads(response["body"])
+        assert (
+            "documents/blank_template_doc.docx"
+            in json_response["output_buckets"][0]["documents"]
+        ), "Did not find document in bucket"
+        assert response["statusCode"] == 200
+
 
 @pytest.mark.parametrize("event", ["list_docs"], indirect=True)
 class TestServerErrors:
@@ -62,5 +86,3 @@ class TestServerErrors:
             json_response == "Missing env OUTPUT_BUCKET"
         ), "Did not find document in bucket"
         assert response["statusCode"] == 500
-
-    # TODO: test gives list of already generated documents in output bucket
