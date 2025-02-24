@@ -26,7 +26,6 @@ class TestHappyPath:
         pytestconfig,
         monkeypatch,
     ):
-        # TODO: test with bad envvars
         monkeypatch.setenv("TEMPLATES_BUCKET", "doesnt-matter")
         monkeypatch.setenv("OUTPUT_BUCKET", "doesnt-matter")
         upload_to_s3_resource(
@@ -42,5 +41,26 @@ class TestHappyPath:
             in json_response["template_buckets"][0]["templates"]
         ), "Did not find document in bucket"
         assert response["statusCode"] == 200
+
+
+@pytest.mark.parametrize("event", ["list_docs"], indirect=True)
+class TestServerErrors:
+    def test_unset_templates_bucket_env(self, event, monkeypatch):
+        monkeypatch.setenv("OUTPUT_BUCKET", "doesnt-matter")
+        response = lambda_handler(event=event, context=None)
+        json_response = json.loads(response["body"])
+        assert (
+            json_response == "Missing env TEMPLATES_BUCKET"
+        ), "Did not find document in bucket"
+        assert response["statusCode"] == 500
+
+    def test_unset_output_bucket_env(self, event, monkeypatch):
+        monkeypatch.setenv("TEMPLATES_BUCKET", "doesnt-matter")
+        response = lambda_handler(event=event, context=None)
+        json_response = json.loads(response["body"])
+        assert (
+            json_response == "Missing env OUTPUT_BUCKET"
+        ), "Did not find document in bucket"
+        assert response["statusCode"] == 500
 
     # TODO: test gives list of already generated documents in output bucket

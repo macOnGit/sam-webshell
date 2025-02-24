@@ -81,6 +81,10 @@ def lambda_handler(event: APIGatewayProxyEvent, context: LambdaContext):
         body = str(e)
         status_code = 400
 
+    except MissingEnvError as e:
+        body = str(e)
+        status_code = 500
+
     except Exception as e:
         logger.error(e, exc_info=True)
         body = "Unhandled Server Error: " + str(e)
