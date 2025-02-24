@@ -36,8 +36,10 @@ class TestHappyPath:
             ["blank_template_doc"],
         )
         response = lambda_handler(event=event, context=None)
+        json_response = json.loads(response["body"])
         assert (
-            "documents/blank_template_doc.docx" in response["body"]
+            "documents/blank_template_doc.docx"
+            in json_response["template_buckets"][0]["templates"]
         ), "Did not find document in bucket"
         assert response["statusCode"] == 200
 
