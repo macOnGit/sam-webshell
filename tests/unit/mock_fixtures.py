@@ -126,3 +126,17 @@ def mock_template_bucket_with_templates(
         patched_s3_resource_templates.bucket.upload_file(
             docx_file, f"{prefix}/{filename}.docx"
         )
+
+
+@pytest.fixture
+def mock_output_bucket_with_documents(
+    patched_s3_resource_output, request, pytestconfig
+):
+    prefix = "documents"
+    base_path = pytestconfig.rootpath
+    filenames = request.param
+    for filename in filenames:
+        docx_file = base_path / "fixtures" / f"{filename}.docx"
+        patched_s3_resource_output.bucket.upload_file(
+            docx_file, f"{prefix}/{filename}.docx"
+        )

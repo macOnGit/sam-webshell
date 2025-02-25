@@ -12,7 +12,7 @@ logger = logging.getLogger()
 logger.setLevel("INFO")
 
 
-# TODO: dupe from documents
+# TODO: dupe from documents - layers?
 class S3Resource:
     """AWS S3 Resource"""
 
@@ -22,13 +22,13 @@ class S3Resource:
         self.bucket = self.resource.Bucket(self.bucket_name)
 
 
-# TODO: dupe from documents
+# TODO: dupe from documents - layers?
 class S3ResoureOutput(S3Resource):
     # separate classes for patching
     pass
 
 
-# TODO: dupe from documents
+# TODO: dupe from documents - layers?
 class S3ResourceTemplates(S3Resource):
     # separate classes for patching
     pass

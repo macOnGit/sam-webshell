@@ -1,67 +1,51 @@
 import pytest
-from pathlib import Path
 import json
-from functions.app_resources.app.lambda_file import (
-    lambda_handler,
-    S3Resource,
-)
-
-
-# TODO: dupe from test_document_lambda
-def upload_to_s3_resource(
-    resource: S3Resource, base_path: Path, prefix: str, filenames: list
-):
-    for filename in filenames:
-        docx_file = base_path / "fixtures" / f"{filename}.docx"
-        resource.bucket.upload_file(docx_file, f"{prefix}/{filename}.docx")
+from functions.app_resources.app.lambda_file import lambda_handler
 
 
 @pytest.mark.parametrize("event", ["list_docs"], indirect=True)
 class TestHappyPath:
+
+    @pytest.mark.usefixtures("patched_s3_resource_output")
+    @pytest.mark.parametrize(
+        "mock_template_bucket_with_templates",
+        [("general_amdt_doc",)],
+        indirect=True,
+    )
     def test_valid_GET_request_lists_available_templates(
         self,
-        patched_s3_resource_templates,
-        patched_s3_resource_output,
         event,
-        pytestconfig,
         monkeypatch,
+        mock_template_bucket_with_templates,
     ):
         monkeypatch.setenv("TEMPLATES_BUCKET", "doesnt-matter")
         monkeypatch.setenv("OUTPUT_BUCKET", "doesnt-matter")
-        upload_to_s3_resource(
-            patched_s3_resource_templates,
-            pytestconfig.rootpath,
-            "documents",
-            ["blank_template_doc"],
-        )
         response = lambda_handler(event=event, context=None)
         json_response = json.loads(response["body"])
         assert (
-            "documents/blank_template_doc.docx"
+            "documents/general_amdt_doc.docx"
             in json_response["template_buckets"][0]["templates"]
         ), "Did not find document in bucket"
         assert response["statusCode"] == 200
 
+    @pytest.mark.parametrize(
+        "mock_output_bucket_with_documents",
+        [("general_amdt_doc",)],
+        indirect=True,
+    )
     def test_valid_GET_request_lists_generated_documents(
         self,
         patched_s3_resource_templates,
-        patched_s3_resource_output,
+        mock_output_bucket_with_documents,
         event,
-        pytestconfig,
         monkeypatch,
     ):
         monkeypatch.setenv("TEMPLATES_BUCKET", "doesnt-matter")
         monkeypatch.setenv("OUTPUT_BUCKET", "doesnt-matter")
-        upload_to_s3_resource(
-            patched_s3_resource_output,
-            pytestconfig.rootpath,
-            "documents",
-            ["blank_template_doc"],
-        )
         response = lambda_handler(event=event, context=None)
         json_response = json.loads(response["body"])
         assert (
-            "documents/blank_template_doc.docx"
+            "documents/general_amdt_doc.docx"
             in json_response["output_buckets"][0]["documents"]
         ), "Did not find document in bucket"
         assert response["statusCode"] == 200
