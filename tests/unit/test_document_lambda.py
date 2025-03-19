@@ -156,3 +156,7 @@ class TestServerErrors:
 # See: https://docs.powertools.aws.dev/lambda/python/latest/utilities/parameters/
 # TODO: write recreatable content to a dynamodb table
 # TODO: sns for prior art download
+# OPTIONAL?:
+# 1. powertools for lambda
+# 2. handle dupe messages
+# 3. jinja in dependency layer
