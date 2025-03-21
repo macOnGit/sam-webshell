@@ -29,7 +29,6 @@ Resources:
             UserPoolArn: !Sub >
              arn:aws:cognito-idp:${AWS::Region}:${AWS::AccountId}:userpool/
              us-east-1_zFCGSAHQH
-        ApiKeyRequired: True
   DocumentsFunction:
     Type: AWS::Serverless::Function
     Properties:
