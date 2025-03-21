@@ -14,6 +14,22 @@ Globals:
       LogFormat: JSON
 
 Resources:
+  ServerlessRestApi:
+    Type: AWS::Serverless::Api
+    Properties:
+      StageName: Prod
+      Cors:
+        AllowMethods: "'POST,GET,OPTIONS'"
+        AllowHeaders: "'Content-Type,X-Amz-Date,Authorization,X-Api-Key,X-Amz-Security-Token'"
+        AllowOrigin: "'*'"
+      Auth:
+        DefaultAuthorizer: MyAuthorizer
+        Authorizers:
+          MyAuthorizer:
+            UserPoolArn: !Sub >
+             arn:aws:cognito-idp:${AWS::Region}:${AWS::AccountId}:userpool/
+             us-east-1_zFCGSAHQH
+        ApiKeyRequired: True
   DocumentsFunction:
     Type: AWS::Serverless::Function
     Properties:
@@ -33,6 +49,7 @@ Resources:
           Properties:
             Path: /documents/{template}
             Method: post
+            RestApiId: !Ref ServerlessRestApi
   AppResourcesFunction:
     Type: AWS::Serverless::Function
     Properties:
@@ -56,6 +73,7 @@ Resources:
           Properties:
             Path: /resources
             Method: get
+            RestApiId: !Ref ServerlessRestApi
 
   TemplatesBucket:
     Type: AWS::S3::Bucket
@@ -70,7 +88,8 @@ Resources:
 Outputs:
   RestApi:
     Description: API Gateway endpoint URL for Prod stage (implicit)
-    Value: !Sub https://${ServerlessRestApi}.execute-api.${AWS::Region}.amazonaws.com/Prod/
+    Value: !Sub >
+      https://${ServerlessRestApi}.execute-api.${AWS::Region}.amazonaws.com/Prod/
   DocumentsFunction:
     Description: Documents Function ARN
     Value: !GetAtt DocumentsFunction.Arn
