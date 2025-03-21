@@ -87,6 +87,7 @@ Resources:
 
 Outputs:
   RestApi:
+    # TODO: don't test against Prod
     Description: API Gateway endpoint URL for Prod stage (implicit)
     Value: !Sub >
       https://${ServerlessRestApi}.execute-api.${AWS::Region}.amazonaws.com/Prod/

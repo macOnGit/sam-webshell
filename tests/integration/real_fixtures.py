@@ -13,7 +13,7 @@ def get_target_from_stack_outputs(stack_outputs, target):
     api_outputs = [output for output in stack_outputs if output["OutputKey"] == target]
     if not api_outputs:
         raise KeyError(f"{target} not found in stack")
-    return api_outputs[0]["OutputValue"]  # Extract url from stack outputs
+    return api_outputs[0]["OutputValue"].strip()
 
 
 @pytest.fixture
