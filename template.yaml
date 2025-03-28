@@ -26,12 +26,10 @@ Resources:
         AllowHeaders: "'Content-Type,X-Amz-Date,Authorization,X-Api-Key,X-Amz-Security-Token'"
         AllowOrigin: "'*'"
       Auth:
-        DefaultAuthorizer: MyAuthorizer
         Authorizers:
           MyAuthorizer:
             UserPoolArn: !Sub >
-             arn:aws:cognito-idp:${AWS::Region}:${AWS::AccountId}:userpool/
-             us-east-1_zFCGSAHQH
+              arn:aws:cognito-idp:${AWS::Region}:${AWS::AccountId}:userpool/us-east-1_zFCGSAHQH
   DocumentsFunction:
     Type: AWS::Serverless::Function
     Properties:
@@ -52,6 +50,8 @@ Resources:
             RestApiId: !Ref ServerlessRestApi
             Path: /documents/{template}
             Method: post
+            Auth:
+              Authorizer: MyAuthorizer
   AppResourcesFunction:
     Type: AWS::Serverless::Function
     Properties:
@@ -76,6 +76,8 @@ Resources:
             RestApiId: !Ref ServerlessRestApi
             Path: /resources
             Method: get
+            Auth:
+              Authorizer: MyAuthorizer
 
   TemplatesBucket:
     Type: AWS::S3::Bucket
