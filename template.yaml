@@ -13,6 +13,9 @@ Globals:
     LoggingConfig:
       LogFormat: JSON
 
+
+# why is the authorizer not working? it's not being attached to the api.
+
 Resources:
   ServerlessRestApi:
     Type: AWS::Serverless::Api
@@ -46,9 +49,9 @@ Resources:
         CreateDocument:
           Type: Api
           Properties:
+            RestApiId: !Ref ServerlessRestApi
             Path: /documents/{template}
             Method: post
-            RestApiId: !Ref ServerlessRestApi
   AppResourcesFunction:
     Type: AWS::Serverless::Function
     Properties:
@@ -67,12 +70,12 @@ Resources:
         - S3FullAccessPolicy:
             BucketName: !Ref TemplatesBucket
       Events:
-        CreateDocument:
+        DetailResources:
           Type: Api
           Properties:
+            RestApiId: !Ref ServerlessRestApi
             Path: /resources
             Method: get
-            RestApiId: !Ref ServerlessRestApi
 
   TemplatesBucket:
     Type: AWS::S3::Bucket
