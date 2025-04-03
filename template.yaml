@@ -22,15 +22,11 @@ Resources:
         AllowMethods: "'POST,GET,OPTIONS'"
         AllowHeaders: "'Content-Type,X-Amz-Date,Authorization,X-Api-Key,X-Amz-Security-Token'"
         AllowOrigin: "'*'"
-  Authorizer:
-    Type: AWS::ApiGateway::Authorizer
-    Properties:
-      Name: amplify-webshell-user-pool
-      Type: COGNITO_USER_POOLS
-      IdentitySource: method.request.header.Auth
-      RestApiId: !Ref MyServerlessRestApi
-      ProviderARNs:
-        - !Sub arn:aws:cognito-idp:${AWS::Region}:${AWS::AccountId}:userpool/us-east-1_zFCGSAHQH
+      Auth:
+        DefaultAuthorizer: MyCognitoAuthorizer
+        Authorizers:
+           MyCognitoAuthorizer:
+             UserPoolArn: !Sub arn:aws:cognito-idp:${AWS::Region}:${AWS::AccountId}:userpool/us-east-1_zFCGSAHQH
   DocumentsFunction:
     Type: AWS::Serverless::Function
     Properties:
