@@ -14,7 +14,7 @@ Globals:
       LogFormat: JSON
 
 Resources:
-  ServerlessRestApi:
+  MyServerlessRestApi:
     Type: AWS::Serverless::Api
     Properties:
       StageName: Prod
@@ -22,18 +22,13 @@ Resources:
         AllowMethods: "'POST,GET,OPTIONS'"
         AllowHeaders: "'Content-Type,X-Amz-Date,Authorization,X-Api-Key,X-Amz-Security-Token'"
         AllowOrigin: "'*'"
-      Auth:
-        DefaultAuthorizer: MyCognitoAuthorizer
-        Authorizers:
-          MyCognitoAuthorizer:
-            UserPoolArn: !GetAtt Authorizer.Arn
   Authorizer:
     Type: AWS::ApiGateway::Authorizer
     Properties:
       Name: amplify-webshell-user-pool
       Type: COGNITO_USER_POOLS
       IdentitySource: method.request.header.Auth
-      RestApiId: !Ref ServerlessRestApi
+      RestApiId: !Ref MyServerlessRestApi
       ProviderARNs:
         - !Sub arn:aws:cognito-idp:${AWS::Region}:${AWS::AccountId}:userpool/us-east-1_zFCGSAHQH
   DocumentsFunction:
@@ -53,7 +48,7 @@ Resources:
         CreateDocument:
           Type: Api
           Properties:
-            RestApiId: !Ref ServerlessRestApi
+            RestApiId: !Ref MyServerlessRestApi
             Path: /documents/{template}
             Method: post
   AppResourcesFunction:
@@ -77,7 +72,7 @@ Resources:
         DetailResources:
           Type: Api
           Properties:
-            RestApiId: !Ref ServerlessRestApi
+            RestApiId: !Ref MyServerlessRestApi
             Path: /resources
             Method: get
 
@@ -96,7 +91,7 @@ Outputs:
     # TODO: don't test against Prod
     Description: API Gateway endpoint URL for Prod stage (implicit)
     Value: !Sub >
-      https://${ServerlessRestApi}.execute-api.${AWS::Region}.amazonaws.com/Prod/
+      https://${MyServerlessRestApi}.execute-api.${AWS::Region}.amazonaws.com/Prod/
   DocumentsFunction:
     Description: Documents Function ARN
     Value: !GetAtt DocumentsFunction.Arn
