@@ -1,9 +1,14 @@
 AWSTemplateFormatVersion: '2010-09-09'
-Transform: AWS::Serverless-2016-10-31
+Transform:
+  # - AWS::LanguageExtensions
+  - AWS::Serverless-2016-10-31
 Description: SAM Template for sam-webshell
 # TODO: use HttpAPI not API
 
 Globals:
+  # https://github.com/aws/serverless-application-model/issues/191#issuecomment-2684694054
+  Api:
+    OpenApiVersion: 3.0.1
   Function:
     Timeout: 10
     MemorySize: 128
@@ -84,10 +89,9 @@ Resources:
 
 Outputs:
   RestApi:
-    # TODO: don't test against Prod
-    Description: API Gateway endpoint URL for Prod stage (implicit)
+    Description: API Gateway endpoint URL
     Value: !Sub >
-      https://${MyServerlessRestApi}.execute-api.${AWS::Region}.amazonaws.com/Prod/
+      https://${MyServerlessRestApi}.execute-api.${AWS::Region}.amazonaws.com/${MyServerlessRestApi.Stage}/
   DocumentsFunction:
     Description: Documents Function ARN
     Value: !GetAtt DocumentsFunction.Arn

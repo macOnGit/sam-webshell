@@ -12,6 +12,7 @@ class TestHappyPath:
         self, api_gateway_url, template_bucket_with_templates
     ):
         response = requests.get(f"{api_gateway_url}/resources")
+        response.raise_for_status()
         assert (
             "documents/blank_template_doc.docx"
             in response.json()["template_buckets"][0]["templates"]
