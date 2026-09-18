@@ -78,12 +78,12 @@ Resources:
   TemplatesBucket:
     Type: AWS::S3::Bucket
     Properties:
-      BucketName: !Sub "transcriber-${AWS::AccountId}-${AWS::Region}-templates"
+      BucketName: !Sub "${AWS::StackName}-templates"
 
   OutputBucket:
     Type: AWS::S3::Bucket
     Properties:
-      BucketName: !Sub "transcriber-${AWS::AccountId}-${AWS::Region}-output"
+      BucketName: !Sub "${AWS::StackName}-output"
 
 Outputs:
   RestApi:
